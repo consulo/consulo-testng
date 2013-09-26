@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="testng">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/testng.jar!/" />
+      <root url="zip://F:/github.com/consulo/!repos without remote/consulo-testng/lib/src/testng.zip!/" />
+    </CLASSES>
+    <DOCUMENTATION />
+    <SOURCES />
+  </library>
+</component>
