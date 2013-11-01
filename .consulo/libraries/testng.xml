@@ -2,9 +2,11 @@
   <library name="testng">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/testng.jar!/" />
-      <root url="zip://F:/github.com/consulo/!repos without remote/consulo-testng/lib/src/testng.zip!/" />
     </CLASSES>
     <DOCUMENTATION />
-    <SOURCES />
+    <SOURCES>
+      <root url="zip://$PROJECT_DIR$/lib/src/testng.zip!/src/main/java" />
+    </SOURCES>
+    <jarDirectory url="zip://$PROJECT_DIR$/lib/src/testng.zip!/src/main/java" recursive="false" type="SOURCES" />
   </library>
 </component>
