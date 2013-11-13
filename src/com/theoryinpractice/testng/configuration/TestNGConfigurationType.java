@@ -14,99 +14,127 @@
  * limitations under the License.
  */
 
-/*
- * Created by IntelliJ IDEA.
- * User: amrk
- * Date: Jul 2, 2005
- * Time: 12:10:47 AM
- */
 package com.theoryinpractice.testng.configuration;
 
+import javax.swing.Icon;
+
+import org.consulo.java.module.extension.JavaModuleExtension;
+import org.jetbrains.annotations.NotNull;
+import org.mustbe.consulo.module.extension.ModuleExtensionHelper;
 import com.intellij.execution.Location;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
-import com.intellij.execution.configurations.*;
-import com.intellij.execution.impl.RunManagerImpl;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.configurations.ConfigurationTypeUtil;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiElement;
 import com.theoryinpractice.testng.model.TestData;
 import icons.TestngIcons;
-import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
+/*
+ * Created by IntelliJ IDEA.
+ * User: amrk
+ * Date: Jul 2, 2005
+ * Time: 12:10:47 AM
+ */
 public class TestNGConfigurationType implements ConfigurationType
 {
-  private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
+	private final ConfigurationFactory myFactory;
 
-    private final ConfigurationFactory myFactory;
+	public TestNGConfigurationType()
+	{
 
-    public TestNGConfigurationType() {
+		myFactory = new ConfigurationFactoryEx(this)
+		{
+			@Override
+			public RunConfiguration createTemplateConfiguration(Project project)
+			{
+				return new TestNGConfiguration("", project, this);
+			}
 
-        myFactory = new ConfigurationFactoryEx(this)
-        {
-            @Override
-            public RunConfiguration createTemplateConfiguration(Project project) {
-                LOGGER.info("Create TestNG Template Configuration");
-                return new TestNGConfiguration("", project, this);
-            }
+			@Override
+			public boolean isApplicable(@NotNull Project project)
+			{
+				return ModuleExtensionHelper.getInstance(project).hasModuleExtension(JavaModuleExtension.class);
+			}
 
-          @Override
-          public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
-            ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
-          }
-        };
-    }
+			@Override
+			public void onNewConfigurationCreated(@NotNull RunConfiguration configuration)
+			{
+				((ModuleBasedConfiguration) configuration).onNewConfigurationCreated();
+			}
+		};
+	}
 
-    public static TestNGConfigurationType getInstance() {
-        return ConfigurationTypeUtil.findConfigurationType(TestNGConfigurationType.class);
-    }
+	public static TestNGConfigurationType getInstance()
+	{
+		return ConfigurationTypeUtil.findConfigurationType(TestNGConfigurationType.class);
+	}
 
-  public boolean isConfigurationByLocation(RunConfiguration runConfiguration, Location location) {
-        TestNGConfiguration config = (TestNGConfiguration) runConfiguration;
-        TestData testobject = config.getPersistantData();
-        if (testobject == null)
-            return false;
-        else {
-          final PsiElement element = location.getPsiElement();
-          if (testobject.isConfiguredByElement(element)) {
-            final Module configurationModule = config.getConfigurationModule().getModule();
-            if (Comparing.equal(location.getModule(), configurationModule)) return true;
+	public boolean isConfigurationByLocation(RunConfiguration runConfiguration, Location location)
+	{
+		TestNGConfiguration config = (TestNGConfiguration) runConfiguration;
+		TestData testobject = config.getPersistantData();
+		if(testobject == null)
+		{
+			return false;
+		}
+		else
+		{
+			final PsiElement element = location.getPsiElement();
+			if(testobject.isConfiguredByElement(element))
+			{
+				final Module configurationModule = config.getConfigurationModule().getModule();
+				if(Comparing.equal(location.getModule(), configurationModule))
+				{
+					return true;
+				}
 
-            final Module predefinedModule =
-              ((TestNGConfiguration)((RunManagerImpl)RunManagerEx.getInstanceEx(location.getProject())).getConfigurationTemplate(myFactory)
-                .getConfiguration()).getConfigurationModule().getModule();
-            return Comparing.equal(predefinedModule, configurationModule);
+				final Module predefinedModule = ((TestNGConfiguration) RunManagerEx.getInstanceEx(location.getProject()).getConfigurationTemplate(myFactory).getConfiguration()).getConfigurationModule().getModule();
+				return Comparing.equal(predefinedModule, configurationModule);
 
-          }
-          else {
-            return false;
-          }
-        }
-    }
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
 
-    public String getDisplayName() {
-        return "TestNG";
-    }
+	@Override
+	public String getDisplayName()
+	{
+		return "TestNG";
+	}
 
-    public String getConfigurationTypeDescription() {
-        return "TestNG Configuration";
-    }
+	@Override
+	public String getConfigurationTypeDescription()
+	{
+		return "TestNG Configuration";
+	}
 
-    public Icon getIcon() {
-        return TestngIcons.TestNG;
-    }
+	@Override
+	public Icon getIcon()
+	{
+		return TestngIcons.TestNG;
+	}
 
-    public ConfigurationFactory[] getConfigurationFactories() {
-        return new ConfigurationFactory[] {myFactory};
-    }
+	@Override
+	public ConfigurationFactory[] getConfigurationFactories()
+	{
+		return new ConfigurationFactory[]{myFactory};
+	}
 
-    @NotNull
-    public String getId() {
-        return "TestNG";
-    }
+	@Override
+	@NotNull
+	public String getId()
+	{
+		return "TestNG";
+	}
 
 }
