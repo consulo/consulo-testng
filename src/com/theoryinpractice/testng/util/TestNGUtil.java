@@ -15,6 +15,19 @@
  */
 package com.theoryinpractice.testng.util;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.testng.Assert;
+import org.testng.ITestNGListener;
+import org.testng.TestNG;
+import org.testng.annotations.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,7 +41,11 @@ import com.intellij.openapi.roots.libraries.JarVersionDetectionUtil;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.ArchiveFile;
+import com.intellij.openapi.vfs.ArchiveFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.util.ArchiveVfsUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -41,19 +58,6 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.NanoXmlUtil;
 import com.theoryinpractice.testng.model.TestClassFilter;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.testng.Assert;
-import org.testng.ITestNGListener;
-import org.testng.TestNG;
-import org.testng.annotations.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Hani Suleiman Date: Jul 20, 2005 Time: 1:37:36 PM
@@ -71,9 +75,9 @@ public class TestNGUtil
       final VirtualFile testngjar = LocalFileSystem.getInstance().findFileByPath(testngJarPath);
       if (testngjar != null ) {
         try {
-          final VirtualFile jarRoot = ArchiveVfsUtil.getJarRootForLocalFile(testngjar);
+          final VirtualFile jarRoot = ArchiveVfsUtil.getArchiveRootForLocalFile(testngjar);
           if (jarRoot != null) {
-            final ArchiveFile zipFile = ((ArchiveFileSystem)jarRoot.getFileSystem()).getJarFile(jarRoot);
+            final ArchiveFile zipFile = ((ArchiveFileSystem)jarRoot.getFileSystem()).getArchiveWrapperFile(jarRoot);
             final String version = JarVersionDetectionUtil.detectJarVersion(zipFile);
             if (version != null && version.compareTo("5.12") > 0) {
               return false;
