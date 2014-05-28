@@ -15,6 +15,13 @@
  */
 package com.theoryinpractice.testng.inspection;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mustbe.consulo.java.util.JavaClassNames;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
@@ -22,12 +29,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.util.InheritanceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Bas Leijdekkers
@@ -79,7 +80,7 @@ public class ExpectedExceptionNeverThrownTestNGInspection extends BaseJavaLocalI
       }
       final PsiClassType classType = (PsiClassType)type;
       final PsiClass aClass = classType.resolve();
-      if (InheritanceUtil.isInheritor(aClass, CommonClassNames.JAVA_LANG_RUNTIME_EXCEPTION)) {
+      if (InheritanceUtil.isInheritor(aClass, JavaClassNames.JAVA_LANG_RUNTIME_EXCEPTION)) {
         return;
       }
       final Set<PsiClassType> exceptionsThrown = calculateExceptionsThrown(body);
@@ -186,12 +187,12 @@ public class ExpectedExceptionNeverThrownTestNGInspection extends BaseJavaLocalI
 
     @Nullable
     private static PsiMethod findAutoCloseableCloseMethod(@Nullable PsiClass aClass) {
-      if (aClass == null || !InheritanceUtil.isInheritor(aClass, CommonClassNames.JAVA_LANG_AUTO_CLOSEABLE)) {
+      if (aClass == null || !InheritanceUtil.isInheritor(aClass, JavaClassNames.JAVA_LANG_AUTO_CLOSEABLE)) {
         return null;
       }
       final Project project = aClass.getProject();
       final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-      final PsiClass autoCloseable = facade.findClass(CommonClassNames.JAVA_LANG_AUTO_CLOSEABLE, ProjectScope.getLibrariesScope(project));
+      final PsiClass autoCloseable = facade.findClass(JavaClassNames.JAVA_LANG_AUTO_CLOSEABLE, ProjectScope.getLibrariesScope(project));
       if (autoCloseable == null) {
         return null;
       }

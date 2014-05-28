@@ -22,6 +22,13 @@
  */
 package com.theoryinpractice.testng;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.testng.annotations.DataProvider;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.codeInsight.lookup.LookupValueFactory;
@@ -35,48 +42,45 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.filters.ElementFilter;
 import com.intellij.psi.filters.position.FilterPattern;
-import com.intellij.psi.impl.source.resolve.reference.PsiReferenceProviderBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ProcessingContext;
 import com.theoryinpractice.testng.inspection.DependsOnGroupsInspection;
 import com.theoryinpractice.testng.util.TestNGUtil;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.testng.annotations.DataProvider;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TestNGReferenceContributor extends PsiReferenceContributor {
   private static PsiElementPattern.Capture<PsiLiteralExpression> getElementPattern(String annotation) {
     return PlatformPatterns.psiElement(PsiLiteralExpression.class).and(new FilterPattern(new TestAnnotationFilter(annotation)));
   }
 
+  @Override
   public void registerReferenceProviders(PsiReferenceRegistrar registrar) {
-    registrar.registerReferenceProvider(getElementPattern("dependsOnMethods"), new PsiReferenceProviderBase() {
-      @NotNull
+    registrar.registerReferenceProvider(getElementPattern("dependsOnMethods"), new PsiReferenceProvider() {
+      @Override
+	  @NotNull
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull final ProcessingContext context) {
         return new MethodReference[]{new MethodReference((PsiLiteralExpression)element)};
       }
     });
 
-    registrar.registerReferenceProvider(getElementPattern("dataProvider"), new PsiReferenceProviderBase() {
-      @NotNull
+    registrar.registerReferenceProvider(getElementPattern("dataProvider"), new PsiReferenceProvider() {
+      @Override
+	  @NotNull
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull final ProcessingContext context) {
         return new DataProviderReference[]{new DataProviderReference((PsiLiteralExpression)element)};
       }
     });
-    registrar.registerReferenceProvider(getElementPattern("groups"), new PsiReferenceProviderBase() {
-      @NotNull
+    registrar.registerReferenceProvider(getElementPattern("groups"), new PsiReferenceProvider() {
+      @Override
+	  @NotNull
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull final ProcessingContext context) {
         return new GroupReference[]{new GroupReference(element.getProject(), (PsiLiteralExpression)element)};
       }
     });
-    registrar.registerReferenceProvider(getElementPattern("dependsOnGroups"), new PsiReferenceProviderBase() {
-      @NotNull
+    registrar.registerReferenceProvider(getElementPattern("dependsOnGroups"), new PsiReferenceProvider() {
+      @Override
+	  @NotNull
       public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull final ProcessingContext context) {
         return new GroupReference[]{new GroupReference(element.getProject(), (PsiLiteralExpression)element)};
       }
@@ -89,7 +93,8 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
       super(element, false);
     }
 
-    @Nullable
+    @Override
+	@Nullable
     public PsiElement resolve() {
       final PsiClass cls = getProviderClass(PsiUtil.getTopLevelClass(getElement()));
       if (cls != null) {
@@ -116,7 +121,8 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
       return null;
     }
 
-    @NotNull
+    @Override
+	@NotNull
     public Object[] getVariants() {
       final List<Object> list = new ArrayList<Object>();
       final PsiClass topLevelClass = PsiUtil.getTopLevelClass(getElement());
@@ -182,7 +188,8 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
       super(element, false);
     }
 
-    @Nullable
+    @Override
+	@Nullable
     public PsiElement resolve() {
       @NonNls String val = getValue();
       final String methodName = StringUtil.getShortName(val);
@@ -206,7 +213,8 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
                                            : JavaPsiFacade.getInstance(element.getProject()).findClass(className, element.getResolveScope());
     }
 
-    @NotNull
+    @Override
+	@NotNull
     public Object[] getVariants() {
       List<Object> list = new ArrayList<Object>();
       @NonNls String val = getValue();
@@ -239,12 +247,14 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
       myProject = project;
     }
 
-    @Nullable
+    @Override
+	@Nullable
     public PsiElement resolve() {
       return null;
     }
 
-    @NotNull
+    @Override
+	@NotNull
     public Object[] getVariants() {
       List<Object> list = new ArrayList<Object>();
 
@@ -271,7 +281,8 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
       myParameterName = parameterName;
     }
 
-    public boolean isAcceptable(Object element, PsiElement context) {
+    @Override
+	public boolean isAcceptable(Object element, PsiElement context) {
       PsiNameValuePair pair = PsiTreeUtil.getParentOfType(context, PsiNameValuePair.class);
       if (null == pair) return false;
       if (!myParameterName.equals(pair.getName())) return false;
@@ -281,7 +292,8 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
       return true;
     }
 
-    public boolean isClassAcceptable(Class hintClass) {
+    @Override
+	public boolean isClassAcceptable(Class hintClass) {
       return PsiLiteralExpression.class.isAssignableFrom(hintClass);
     }
   }

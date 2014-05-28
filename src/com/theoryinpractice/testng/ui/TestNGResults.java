@@ -527,7 +527,7 @@ public class TestNGResults extends TestResultsPanel implements TestFrameworkRunn
 	public void setFilter(final Filter filter)
 	{
 		getTreeStructure().setFilter(filter);
-		treeBuilder.updateFromRoot();
+		treeBuilder.queueUpdate();
 	}
 
 	@Override
@@ -573,7 +573,7 @@ public class TestNGResults extends TestResultsPanel implements TestFrameworkRunn
 
 	public void rebuildTree()
 	{
-		treeBuilder.updateFromRoot();
+		treeBuilder.queueUpdate();
 		tree.invalidate();
 	}
 

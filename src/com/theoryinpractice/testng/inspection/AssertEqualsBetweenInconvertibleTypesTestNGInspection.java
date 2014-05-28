@@ -15,6 +15,9 @@
  */
 package com.theoryinpractice.testng.inspection;
 
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.mustbe.consulo.java.util.JavaClassNames;
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.util.text.StringUtil;
@@ -22,8 +25,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.TypeConversionUtil;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Bas Leijdekkers
@@ -79,7 +80,7 @@ public class AssertEqualsBetweenInconvertibleTypesTestNGInspection extends BaseJ
       final PsiExpression expression2;
       final PsiType parameterType1;
       final PsiType parameterType2;
-      if (junit && firstParameterType.equalsToText(CommonClassNames.JAVA_LANG_STRING)) {
+      if (junit && firstParameterType.equalsToText(JavaClassNames.JAVA_LANG_STRING)) {
         if (arguments.length < 3) {
           return;
         }
