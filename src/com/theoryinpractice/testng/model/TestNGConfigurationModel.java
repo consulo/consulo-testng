@@ -261,6 +261,7 @@ public class TestNGConfigurationModel
 		{
 			ApplicationManager.getApplication().runWriteAction(new Runnable()
 			{
+				@Override
 				public void run()
 				{
 					((com.intellij.openapi.editor.Document) document).replaceString(0, ((com.intellij.openapi.editor.Document) document)
