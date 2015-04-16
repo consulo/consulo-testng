@@ -1,4 +1,5 @@
 <idea-plugin>
+	<id>org.mustbe.consulo.testng</id>
 	<name>TestNG-J</name>
 	<description>TestNG Integration</description>
 	<version>SNAPSHOT</version>
