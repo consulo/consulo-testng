@@ -4,6 +4,7 @@
 	<description>TestNG Integration</description>
 	<version>SNAPSHOT</version>
 	<vendor>Theory In Practice</vendor>
+	<category>Test Frameworks</category>
 	<depends>org.consulo.java</depends>
 
 	<extensionPoints>
