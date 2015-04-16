@@ -15,6 +15,12 @@
  */
 package com.theoryinpractice.testng.model;
 
+import java.util.LinkedHashSet;
+
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.PlainDocument;
+
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,199 +32,255 @@ import com.intellij.psi.PsiClass;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
 
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.PlainDocument;
-import java.util.LinkedHashSet;
-
 /**
  * @author Hani Suleiman Date: Jul 21, 2005 Time: 1:20:14 PM
  */
 public class TestNGConfigurationModel
 {
-    private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
+	private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
 
-    private TestNGConfigurationEditor editor;
-    private TestType type;
-    private final Object[] typeDocuments = new Object[6];
-    private final Document propertiesFileDocument = new PlainDocument();
-    private final Document outputDirectoryDocument = new PlainDocument();
-    private final Project project;
+	private TestNGConfigurationEditor editor;
+	private TestType type;
+	private final Object[] typeDocuments = new Object[6];
+	private final Document propertiesFileDocument = new PlainDocument();
+	private final Document outputDirectoryDocument = new PlainDocument();
+	private final Project project;
 
-    public TestNGConfigurationModel(Project project) {
-        type = TestType.INVALID;
-        for (int i = 3; i < typeDocuments.length; i++)
-            typeDocuments[i] = new PlainDocument();
+	public TestNGConfigurationModel(Project project)
+	{
+		type = TestType.INVALID;
+		for(int i = 3; i < typeDocuments.length; i++)
+		{
+			typeDocuments[i] = new PlainDocument();
+		}
 
-        this.project = project;
-    }
+		this.project = project;
+	}
 
-    public void setDocument(int type, Object doc) {
-      typeDocuments[type] = doc;
-    }
+	public void setDocument(int type, Object doc)
+	{
+		typeDocuments[type] = doc;
+	}
 
-    public void setType(TestType type) {
-        if (type == this.type)
-            return;
+	public void setType(TestType type)
+	{
+		if(type == this.type)
+		{
+			return;
+		}
 
-        this.type = type;
-        updateEditorType(type);
-    }
+		this.type = type;
+		updateEditorType(type);
+	}
 
-    private void updateEditorType(TestType type) {
-        editor.onTypeChanged(type);
-    }
+	private void updateEditorType(TestType type)
+	{
+		editor.onTypeChanged(type);
+	}
 
-    public void setListener(TestNGConfigurationEditor editor) {
-        this.editor = editor;
-    }
+	public void setListener(TestNGConfigurationEditor editor)
+	{
+		this.editor = editor;
+	}
 
-    public Object getDocument(int index) {
-        return typeDocuments[index];
-    }
+	public Object getDocument(int index)
+	{
+		return typeDocuments[index];
+	}
 
-    public Document getPropertiesFileDocument() {
-        return propertiesFileDocument;
-    }
+	public Document getPropertiesFileDocument()
+	{
+		return propertiesFileDocument;
+	}
 
-    public Document getOutputDirectoryDocument() {
-        return outputDirectoryDocument;
-    }
+	public Document getOutputDirectoryDocument()
+	{
+		return outputDirectoryDocument;
+	}
 
-    public Project getProject() {
-        return project;
-    }
+	public Project getProject()
+	{
+		return project;
+	}
 
-    public void apply(Module module, TestNGConfiguration config) {
-        boolean isGenerated = config.isGeneratedName();
-        apply(config.getPersistantData(), module);
-        if (isGenerated && !JavaExecutionUtil.isNewName(config.getName())) {
-            config.setGeneratedName();
-        }
-    }
+	public void apply(Module module, TestNGConfiguration config)
+	{
+		boolean isGenerated = config.isGeneratedName();
+		apply(config.getPersistantData(), module);
+		if(isGenerated && !JavaExecutionUtil.isNewName(config.getName()))
+		{
+			config.setGeneratedName();
+		}
+	}
 
-    private void apply(TestData data, Module module) {
-        data.TEST_OBJECT = type.getType();
-        if (TestType.GROUP == type) {
-            data.GROUP_NAME = getText(TestType.GROUP);
-            data.PACKAGE_NAME = "";
-            data.MAIN_CLASS_NAME = "";
-            data.METHOD_NAME = "";
-            data.SUITE_NAME = "";
-        } else if (TestType.PACKAGE == type) {
-            data.PACKAGE_NAME = getText(TestType.PACKAGE);
-            data.GROUP_NAME = "";
-            data.MAIN_CLASS_NAME = "";
-            data.METHOD_NAME = "";
-            data.SUITE_NAME = "";
-        } else if (TestType.METHOD == type || TestType.CLASS == type) {
-            String className = getText(TestType.CLASS);
-            data.GROUP_NAME = "";
-            data.SUITE_NAME = "";
-            if (TestType.METHOD == type)
-                data.METHOD_NAME = getText(TestType.METHOD);
+	private void apply(TestData data, Module module)
+	{
+		data.TEST_OBJECT = type.getType();
+		if(TestType.GROUP == type)
+		{
+			data.GROUP_NAME = getText(TestType.GROUP);
+			data.PACKAGE_NAME = "";
+			data.MAIN_CLASS_NAME = "";
+			data.METHOD_NAME = "";
+			data.SUITE_NAME = "";
+		}
+		else if(TestType.PACKAGE == type)
+		{
+			data.PACKAGE_NAME = getText(TestType.PACKAGE);
+			data.GROUP_NAME = "";
+			data.MAIN_CLASS_NAME = "";
+			data.METHOD_NAME = "";
+			data.SUITE_NAME = "";
+		}
+		else if(TestType.METHOD == type || TestType.CLASS == type)
+		{
+			String className = getText(TestType.CLASS);
+			data.GROUP_NAME = "";
+			data.SUITE_NAME = "";
+			if(TestType.METHOD == type)
+			{
+				data.METHOD_NAME = getText(TestType.METHOD);
+			}
 
-            PsiClass psiClass = !getProject().isDefault() && !StringUtil.isEmptyOrSpaces(className) ? JUnitUtil.findPsiClass(className, module, getProject()) : null;
-            if (psiClass != null && psiClass.isValid())
-                data.setMainClass(psiClass);
-            else
-                data.MAIN_CLASS_NAME = className;
+			PsiClass psiClass = !getProject().isDefault() && !StringUtil.isEmptyOrSpaces(className) ? JUnitUtil.findPsiClass(className, module,
+					getProject()) : null;
+			if(psiClass != null && psiClass.isValid())
+			{
+				data.setMainClass(psiClass);
+			}
+			else
+			{
+				data.MAIN_CLASS_NAME = className;
+			}
 
-        } else if (TestType.SUITE == type) {
-            data.SUITE_NAME = getText(TestType.SUITE);
-            data.PACKAGE_NAME = "";
-            data.GROUP_NAME = "";
-            data.MAIN_CLASS_NAME = "";
-            data.METHOD_NAME = "";
-        }
-        else if (TestType.PATTERN == type) {
-          final LinkedHashSet<String> set = new LinkedHashSet<String>();
-          final String[] patterns = getText(TestType.PATTERN).split("\\|\\|");
-          for (String pattern : patterns) {
-            if (pattern.length() > 0) {
-              set.add(pattern);
-            }
-          }
-          data.setPatterns(set);
-        }
+		}
+		else if(TestType.SUITE == type)
+		{
+			data.SUITE_NAME = getText(TestType.SUITE);
+			data.PACKAGE_NAME = "";
+			data.GROUP_NAME = "";
+			data.MAIN_CLASS_NAME = "";
+			data.METHOD_NAME = "";
+		}
+		else if(TestType.PATTERN == type)
+		{
+			final LinkedHashSet<String> set = new LinkedHashSet<String>();
+			final String[] patterns = getText(TestType.PATTERN).split("\\|\\|");
+			for(String pattern : patterns)
+			{
+				if(pattern.length() > 0)
+				{
+					set.add(pattern);
+				}
+			}
+			data.setPatterns(set);
+		}
 
-        try {
-            data.PROPERTIES_FILE = propertiesFileDocument.getText(0, propertiesFileDocument.getLength());
-        } catch (BadLocationException e) {
-            throw new RuntimeException(e);
-        }
+		try
+		{
+			data.PROPERTIES_FILE = propertiesFileDocument.getText(0, propertiesFileDocument.getLength());
+		}
+		catch(BadLocationException e)
+		{
+			throw new RuntimeException(e);
+		}
 
-        try {
-            data.OUTPUT_DIRECTORY = outputDirectoryDocument.getText(0, outputDirectoryDocument.getLength());
-        } catch (BadLocationException e) {
-            throw new RuntimeException(e);
-        }
-    }
+		try
+		{
+			data.OUTPUT_DIRECTORY = outputDirectoryDocument.getText(0, outputDirectoryDocument.getLength());
+		}
+		catch(BadLocationException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
 
-    private String getText(TestType type) {
-        return getText(type, typeDocuments);
-    }
+	private String getText(TestType type)
+	{
+		return getText(type, typeDocuments);
+	}
 
-    private String getText(TestType testType, Object[] documents) {
-        Object document = documents[testType.getValue()];
-      if (document instanceof PlainDocument) {
-        try {
-            return ((PlainDocument)document).getText(0, ((PlainDocument)document).getLength());
-        }
-        catch (BadLocationException e) {
-            throw new RuntimeException(e);
-        }
-      }
-      return ((com.intellij.openapi.editor.Document)document).getText();
-    }
+	private String getText(TestType testType, Object[] documents)
+	{
+		Object document = documents[testType.getValue()];
+		if(document instanceof PlainDocument)
+		{
+			try
+			{
+				return ((PlainDocument) document).getText(0, ((PlainDocument) document).getLength());
+			}
+			catch(BadLocationException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+		return ((com.intellij.openapi.editor.Document) document).getText();
+	}
 
-    public void reset(TestNGConfiguration config) {
-        TestData data = config.getPersistantData();
-        setType(data.TEST_OBJECT);
-        setTypeValue(TestType.PACKAGE, data.getPackageName());
-        setTypeValue(TestType.CLASS, data.getMainClassName());
-        setTypeValue(TestType.METHOD, data.getMethodName());
-        setTypeValue(TestType.GROUP, data.getGroupName());
-        setTypeValue(TestType.SUITE, data.getSuiteName());
-        setTypeValue(TestType.PATTERN, StringUtil.join(data.getPatterns(), "||"));
+	public void reset(TestNGConfiguration config)
+	{
+		TestData data = config.getPersistantData();
+		setType(data.TEST_OBJECT);
+		setTypeValue(TestType.PACKAGE, data.getPackageName());
+		setTypeValue(TestType.CLASS, data.getMainClassName());
+		setTypeValue(TestType.METHOD, data.getMethodName());
+		setTypeValue(TestType.GROUP, data.getGroupName());
+		setTypeValue(TestType.SUITE, data.getSuiteName());
+		setTypeValue(TestType.PATTERN, StringUtil.join(data.getPatterns(), "||"));
 
-        setDocumentText(propertiesFileDocument, data.getPropertiesFile());
-        setDocumentText(outputDirectoryDocument, data.getOutputDirectory());
-    }
+		setDocumentText(propertiesFileDocument, data.getPropertiesFile());
+		setDocumentText(outputDirectoryDocument, data.getOutputDirectory());
+	}
 
-    private void setTypeValue(TestType type, String value) {
-        setTypeValue(type, value, typeDocuments);
-    }
+	private void setTypeValue(TestType type, String value)
+	{
+		setTypeValue(type, value, typeDocuments);
+	}
 
-    private void setTypeValue(TestType type, String value, Object[] documents) {
-        Object document = documents[type.getValue()];
-        setDocumentText(document, value);
-    }
+	private void setTypeValue(TestType type, String value, Object[] documents)
+	{
+		Object document = documents[type.getValue()];
+		setDocumentText(document, value);
+	}
 
-    private void setDocumentText(final Object document, final String value) {
-      if (document instanceof PlainDocument) {
-        try {
-          ((PlainDocument)document).remove(0, ((PlainDocument)document).getLength());
-          ((PlainDocument)document).insertString(0, value, null);
-        } catch (BadLocationException e) {
-            throw new RuntimeException(e);
-        }
-      }  else {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          public void run() {
-            ((com.intellij.openapi.editor.Document)document).replaceString(0, ((com.intellij.openapi.editor.Document)document).getTextLength(), value);
-          }
-        });
-      }
+	private void setDocumentText(final Object document, final String value)
+	{
+		if(document instanceof PlainDocument)
+		{
+			try
+			{
+				((PlainDocument) document).remove(0, ((PlainDocument) document).getLength());
+				((PlainDocument) document).insertString(0, value, null);
+			}
+			catch(BadLocationException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+		else
+		{
+			ApplicationManager.getApplication().runWriteAction(new Runnable()
+			{
+				public void run()
+				{
+					((com.intellij.openapi.editor.Document) document).replaceString(0, ((com.intellij.openapi.editor.Document) document)
+							.getTextLength(), value);
+				}
+			});
+		}
 
-    }
+	}
 
-    private void setType(String s) {
-        try {
-            setType(TestType.valueOf(s));
-        } catch (IllegalArgumentException e) {
-            LOGGER.debug("Invalid test type of " + s + " found.");
-            setType(TestType.CLASS);
-        }
-    }
+	private void setType(String s)
+	{
+		try
+		{
+			setType(TestType.valueOf(s));
+		}
+		catch(IllegalArgumentException e)
+		{
+			LOGGER.debug("Invalid test type of " + s + " found.");
+			setType(TestType.CLASS);
+		}
+	}
 }
