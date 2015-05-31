@@ -20,20 +20,25 @@
           <orderEntry type="module-library">
             <library name="consulo:Java">
               <binaries>
+                <root url="jar://$MODULE_DIR$/dep/java/lib/asm-all.jar!/" />
+                <root url="jar://$MODULE_DIR$/dep/java/lib/coverate_rt.jar!/" />
+                <root url="jar://$MODULE_DIR$/dep/java/lib/instrumentation-util.jar!/" />
+                <root url="jar://$MODULE_DIR$/dep/java/lib/jacocoant.jar!/" />
+                <root url="jar://$MODULE_DIR$/dep/java/lib/java-i18n.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/java/lib/java-manifest.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/java/lib/java-rt.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/java/lib/java.jar!/" />
+                <root url="jar://$MODULE_DIR$/dep/java/lib/jdi.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/java/lib/jdk-annotations.jar!/" />
+                <root url="jar://$MODULE_DIR$/dep/java/lib/jimage-jdk6.jar!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
             <library name="consulo:XML">
               <binaries>
-                <root url="jar://$MODULE_DIR$/dep/xml/lib/jaxen-1.1.3.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/xml/lib/jsr173_1.0_api.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/xml/lib/resolver.jar!/" />
-                <root url="jar://$MODULE_DIR$/dep/xml/lib/xbean.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/xml/lib/xerces.jar!/" />
                 <root url="jar://$MODULE_DIR$/dep/xml/lib/xml.jar!/" />
               </binaries>

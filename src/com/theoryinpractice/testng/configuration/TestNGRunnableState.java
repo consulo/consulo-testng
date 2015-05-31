@@ -41,6 +41,7 @@ import org.testng.remote.RemoteArgs;
 import org.testng.remote.RemoteTestNG;
 import org.testng.remote.strprotocol.SerializedMessageSender;
 import com.intellij.debugger.engine.DebuggerUtils;
+import com.intellij.debugger.settings.DebuggerSettings;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -131,7 +132,7 @@ public class TestNGRunnableState extends JavaCommandLineState
 			{
 				try
 				{
-					debugPort = DebuggerUtils.getInstance().findAvailableDebugAddress(true);
+					debugPort = DebuggerUtils.getInstance().findAvailableDebugAddress(DebuggerSettings.SOCKET_TRANSPORT).address();
 				}
 				catch(ExecutionException e)
 				{
