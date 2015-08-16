@@ -16,8 +16,8 @@
 package com.theoryinpractice.testng.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
+import java.util.jar.Attributes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,16 +37,12 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.libraries.JarVersionDetectionUtil;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.vfs.ArchiveFile;
-import com.intellij.openapi.vfs.ArchiveFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.util.io.JarUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.util.ArchiveVfsUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
@@ -74,27 +70,11 @@ public class TestNGUtil
 		final String testngJarPath = PathUtil.getJarPathForClass(Test.class);
 		if(testngJarPath != null)
 		{
-			final VirtualFile testngjar = LocalFileSystem.getInstance().findFileByPath(testngJarPath);
-			if(testngjar != null)
+			String attribute = JarUtil.getJarAttribute(new File(testngJarPath),
+					Attributes.Name.IMPLEMENTATION_VERSION);
+			if(attribute != null && attribute.compareTo("5.12") > 0)
 			{
-				try
-				{
-					final VirtualFile jarRoot = ArchiveVfsUtil.getArchiveRootForLocalFile(testngjar);
-					if(jarRoot != null)
-					{
-						final ArchiveFile zipFile = ((ArchiveFileSystem) jarRoot.getFileSystem())
-								.getArchiveWrapperFile(jarRoot);
-						final String version = JarVersionDetectionUtil.detectJarVersion(zipFile);
-						if(version != null && version.compareTo("5.12") > 0)
-						{
-							return false;
-						}
-					}
-				}
-				catch(IOException e)
-				{
-					return true;
-				}
+				return false;
 			}
 		}
 		return true;
