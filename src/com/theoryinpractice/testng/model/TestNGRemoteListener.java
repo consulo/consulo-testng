@@ -22,65 +22,90 @@
  */
 package com.theoryinpractice.testng.model;
 
+import org.testng.remote.strprotocol.GenericMessage;
+import org.testng.remote.strprotocol.IRemoteSuiteListener;
+import org.testng.remote.strprotocol.IRemoteTestListener;
+import org.testng.remote.strprotocol.SuiteMessage;
+import org.testng.remote.strprotocol.TestMessage;
+import org.testng.remote.strprotocol.TestResultMessage;
 import com.theoryinpractice.testng.ui.TestNGConsoleView;
 import com.theoryinpractice.testng.ui.TestNGResults;
-import org.testng.remote.strprotocol.*;
 
-public class TestNGRemoteListener implements IRemoteSuiteListener, IRemoteTestListener {
-  private final TestNGConsoleView console;
-  private final TreeRootNode unboundOutputRoot;
+public class TestNGRemoteListener implements IRemoteSuiteListener, IRemoteTestListener
+{
+	private final TestNGConsoleView console;
+	private final TreeRootNode unboundOutputRoot;
 
-  public TestNGRemoteListener(TestNGConsoleView console, TreeRootNode unboundOutputRoot) {
-    this.console = console;
-    this.unboundOutputRoot = unboundOutputRoot;
-  }
+	public TestNGRemoteListener(TestNGConsoleView console, TreeRootNode unboundOutputRoot)
+	{
+		this.console = console;
+		this.unboundOutputRoot = unboundOutputRoot;
+	}
 
-  public void onInitialization(GenericMessage genericMessage) {
-  }
+	@Override
+	public void onInitialization(GenericMessage genericMessage)
+	{
+	}
 
-  public void onStart(SuiteMessage suiteMessage) {
-    final TestNGResults view = console.getResultsView();
-    if (view != null) {
-      view.start();
-    }
-  }
+	@Override
+	public void onStart(SuiteMessage suiteMessage)
+	{
+		final TestNGResults view = console.getResultsView();
+		if(view != null)
+		{
+			view.start();
+		}
+	}
 
-  public void onFinish(SuiteMessage suiteMessage) {
-    unboundOutputRoot.flush();
-    console.finish();
-    final TestNGResults view = console.getResultsView();
-    if (view != null) {
-      view.finish();
-    }
-  }
+	@Override
+	public void onFinish(SuiteMessage suiteMessage)
+	{
+		unboundOutputRoot.flush();
+		console.finish();
+	}
 
-  public void onStart(TestMessage tm) {
-    final TestNGResults view = console.getResultsView();
-    if (view != null) {
-      view.setTotal(tm.getTestMethodCount());
-    }
-  }
+	@Override
+	public void onStart(TestMessage tm)
+	{
+		final TestNGResults view = console.getResultsView();
+		if(view != null)
+		{
+			view.setTotal(tm.getTestMethodCount());
+		}
+	}
 
-  public void onTestStart(TestResultMessage trm) {
-    console.testStarted(trm);
-  }
+	@Override
+	public void onTestStart(TestResultMessage trm)
+	{
+		console.testStarted(trm);
+	}
 
-  public void onFinish(TestMessage tm) {
-    console.rebuildTree();
-  }
+	@Override
+	public void onFinish(TestMessage tm)
+	{
+		console.rebuildTree();
+	}
 
-  public void onTestSuccess(TestResultMessage trm) {
-    console.addTestResult(trm);
-  }
+	@Override
+	public void onTestSuccess(TestResultMessage trm)
+	{
+		console.addTestResult(trm);
+	}
 
-  public void onTestFailure(TestResultMessage trm) {
-    console.addTestResult(trm);
-  }
+	@Override
+	public void onTestFailure(TestResultMessage trm)
+	{
+		console.addTestResult(trm);
+	}
 
-  public void onTestSkipped(TestResultMessage trm) {
-    console.addTestResult(trm);
-  }
+	@Override
+	public void onTestSkipped(TestResultMessage trm)
+	{
+		console.addTestResult(trm);
+	}
 
-  public void onTestFailedButWithinSuccessPercentage(TestResultMessage trm) {
-  }
+	@Override
+	public void onTestFailedButWithinSuccessPercentage(TestResultMessage trm)
+	{
+	}
 }

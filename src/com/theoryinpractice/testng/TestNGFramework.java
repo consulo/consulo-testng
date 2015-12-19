@@ -15,6 +15,13 @@
  */
 package com.theoryinpractice.testng;
 
+import javax.swing.Icon;
+
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
@@ -22,165 +29,223 @@ import com.intellij.ide.fileTemplates.FileTemplateDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.testIntegration.JavaTestFramework;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PathUtil;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import icons.TestngIcons;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
-import javax.swing.*;
+public class TestNGFramework extends JavaTestFramework
+{
+	@Override
+	@NotNull
+	public String getName()
+	{
+		return "TestNG";
+	}
 
-public class TestNGFramework extends JavaTestFramework {
-  @NotNull
-  public String getName() {
-    return "TestNG";
-  }
+	@NotNull
+	@Override
+	public Icon getIcon()
+	{
+		return TestngIcons.TestNG;
+	}
 
-  @NotNull
-  @Override
-  public Icon getIcon() {
-    return TestngIcons.TestNG;
-  }
+	@Override
+	protected String getMarkerClassFQName()
+	{
+		return "org.testng.annotations.Test";
+	}
 
-  protected String getMarkerClassFQName() {
-    return "org.testng.annotations.Test";
-  }
+	@Override
+	@NotNull
+	public String getLibraryPath()
+	{
+		try
+		{
+			return PathUtil.getJarPathForClass(Class.forName("org.testng.annotations.Test"));
+		}
+		catch(ClassNotFoundException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
 
-  @NotNull
-  public String getLibraryPath() {
-    try {
-      return PathUtil.getJarPathForClass(Class.forName("org.testng.annotations.Test"));
-    }
-    catch (ClassNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-  }
+	@Override
+	@Nullable
+	public String getDefaultSuperClass()
+	{
+		return null;
+	}
 
-  @Nullable
-  public String getDefaultSuperClass() {
-    return null;
-  }
+	@Override
+	public boolean isTestClass(PsiClass clazz, boolean canBePotential)
+	{
+		if(canBePotential)
+		{
+			return isUnderTestSources(clazz);
+		}
+		return TestNGUtil.isTestNGClass(clazz);
+	}
 
-  public boolean isTestClass(PsiClass clazz, boolean canBePotential) {
-    if (canBePotential) return isUnderTestSources(clazz);
-    return TestNGUtil.isTestNGClass(clazz);
-  }
+	@Nullable
+	@Override
+	protected PsiMethod findSetUpMethod(@NotNull PsiClass clazz)
+	{
+		for(PsiMethod each : clazz.getMethods())
+		{
+			if(AnnotationUtil.isAnnotated(each, "org.testng.annotations.BeforeMethod", false))
+			{
+				return each;
+			}
+		}
+		return null;
+	}
 
-  @Nullable
-  @Override
-  protected PsiMethod findSetUpMethod(@NotNull PsiClass clazz) {
-    for (PsiMethod each : clazz.getMethods()) {
-      if (AnnotationUtil.isAnnotated(each, "org.testng.annotations.BeforeMethod", false)) return each;
-    }
-    return null;
-  }
+	@Nullable
+	@Override
+	protected PsiMethod findTearDownMethod(@NotNull PsiClass clazz)
+	{
+		for(PsiMethod each : clazz.getMethods())
+		{
+			if(AnnotationUtil.isAnnotated(each, "org.testng.annotations.AfterMethod", false))
+			{
+				return each;
+			}
+		}
+		return null;
+	}
 
-  @Nullable
-  @Override
-  protected PsiMethod findTearDownMethod(@NotNull PsiClass clazz) {
-    for (PsiMethod each : clazz.getMethods()) {
-      if (AnnotationUtil.isAnnotated(each, "org.testng.annotations.AfterMethod", false)) return each;
-    }
-    return null;
-  }
+	@Override
+	protected PsiMethod findOrCreateSetUpMethod(PsiClass clazz) throws IncorrectOperationException
+	{
+		PsiMethod method = findSetUpMethod(clazz);
+		if(method != null)
+		{
+			return method;
+		}
 
-  @Override
-  protected PsiMethod findOrCreateSetUpMethod(PsiClass clazz) throws IncorrectOperationException {
-    PsiMethod method = findSetUpMethod(clazz);
-    if (method != null) return method;
+		final PsiManager manager = clazz.getManager();
+		final PsiElementFactory factory = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory();
+		String setUpName = "setUp";
+		PsiMethod patternMethod = createSetUpPatternMethod(factory);
+		PsiMethod inClass = clazz.findMethodBySignature(patternMethod, false);
+		if(inClass != null)
+		{
+			int exit = ApplicationManager.getApplication().isUnitTestMode() ? DialogWrapper.OK_EXIT_CODE : Messages.showYesNoDialog("Method \'" + setUpName + "\' already exist but is not annotated " +
+					"as @BeforeMethod.", CommonBundle.getWarningTitle(), "Annotate", "Create new method", Messages.getWarningIcon());
+			if(exit == DialogWrapper.OK_EXIT_CODE)
+			{
+				new AddAnnotationFix(BeforeMethod.class.getName(), inClass).invoke(inClass.getProject(), null, inClass.getContainingFile());
+				return inClass;
+			}
+			else if(exit == DialogWrapper.CANCEL_EXIT_CODE)
+			{
+				inClass = null;
+				int i = 0;
+				while(clazz.findMethodBySignature(patternMethod, false) != null)
+				{
+					patternMethod.setName(setUpName + (++i));
+				}
+				setUpName = patternMethod.getName();
+			}
+		}
 
-    final PsiManager manager = clazz.getManager();
-    final PsiElementFactory factory = JavaPsiFacade.getInstance(manager.getProject()).getElementFactory();
-    String setUpName = "setUp";
-    PsiMethod patternMethod = createSetUpPatternMethod(factory);
-    PsiMethod inClass = clazz.findMethodBySignature(patternMethod, false);
-    if (inClass != null) {
-      int exit = ApplicationManager.getApplication().isUnitTestMode() ?
-                 DialogWrapper.OK_EXIT_CODE :
-                 Messages.showYesNoDialog("Method \'" + setUpName + "\' already exist but is not annotated as @BeforeMethod.",
-                                          CommonBundle.getWarningTitle(),
-                                          "Annotate",
-                                          "Create new method",
-                                          Messages.getWarningIcon());
-      if (exit == DialogWrapper.OK_EXIT_CODE) {
-        new AddAnnotationFix(BeforeMethod.class.getName(), inClass).invoke(inClass.getProject(), null, inClass.getContainingFile());
-        return inClass;
-      } else if (exit == DialogWrapper.CANCEL_EXIT_CODE) {
-        inClass = null;
-        int i = 0;
-        while (clazz.findMethodBySignature(patternMethod, false) != null) {
-          patternMethod.setName(setUpName + (++i));
-        }
-        setUpName = patternMethod.getName();
-      }
-    }
+		final PsiClass superClass = clazz.getSuperClass();
+		if(superClass != null)
+		{
+			final PsiMethod[] methods = superClass.findMethodsBySignature(patternMethod, false);
+			if(methods.length > 0)
+			{
+				final PsiModifierList modifierList = methods[0].getModifierList();
+				if(!modifierList.hasModifierProperty(PsiModifier.PRIVATE))
+				{ //do not override private method
+					@NonNls String pattern = "@" + BeforeMethod.class.getName() + "\n";
+					if(modifierList.hasModifierProperty(PsiModifier.PROTECTED))
+					{
+						pattern += "protected ";
+					}
+					else if(modifierList.hasModifierProperty(PsiModifier.PUBLIC))
+					{
+						pattern += "public ";
+					}
+					patternMethod = factory.createMethodFromText(pattern + "void " + setUpName + "() throws Exception {\nsuper." + setUpName + "();\n}", null);
+				}
+			}
+		}
 
-    final PsiClass superClass = clazz.getSuperClass();
-    if (superClass != null) {
-      final PsiMethod[] methods = superClass.findMethodsBySignature(patternMethod, false);
-      if (methods.length > 0) {
-        final PsiModifierList modifierList = methods[0].getModifierList();
-        if (!modifierList.hasModifierProperty(PsiModifier.PRIVATE)) { //do not override private method
-          @NonNls String pattern = "@" + BeforeMethod.class.getName() + "\n";
-          if (modifierList.hasModifierProperty(PsiModifier.PROTECTED)) {
-            pattern += "protected ";
-          }
-          else if (modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
-            pattern += "public ";
-          }
-          patternMethod = factory.createMethodFromText(pattern + "void " + setUpName + "() throws Exception {\nsuper." + setUpName + "();\n}", null);
-        }
-      }
-    }
+		final PsiMethod[] psiMethods = clazz.getMethods();
 
-    final PsiMethod[] psiMethods = clazz.getMethods();
+		PsiMethod testMethod = null;
+		for(PsiMethod psiMethod : psiMethods)
+		{
+			if(inClass == null && AnnotationUtil.isAnnotated(psiMethod, BeforeMethod.class.getName(), false))
+			{
+				inClass = psiMethod;
+			}
+			if(testMethod == null && AnnotationUtil.isAnnotated(psiMethod, Test.class.getName(), false) && !psiMethod.hasModifierProperty(PsiModifier.PRIVATE))
+			{
+				testMethod = psiMethod;
+			}
+		}
+		if(inClass == null)
+		{
+			final PsiMethod psiMethod;
+			if(testMethod != null)
+			{
+				psiMethod = (PsiMethod) clazz.addBefore(patternMethod, testMethod);
+			}
+			else
+			{
+				psiMethod = (PsiMethod) clazz.add(patternMethod);
+			}
+			JavaCodeStyleManager.getInstance(clazz.getProject()).shortenClassReferences(clazz);
+			return psiMethod;
+		}
+		else if(inClass.getBody() == null)
+		{
+			return (PsiMethod) inClass.replace(patternMethod);
+		}
+		return inClass;
+	}
 
-    PsiMethod testMethod = null;
-    for (PsiMethod psiMethod : psiMethods) {
-      if (inClass == null && AnnotationUtil.isAnnotated(psiMethod, BeforeMethod.class.getName(), false)) {
-        inClass = psiMethod;
-      }
-      if (testMethod == null && AnnotationUtil.isAnnotated(psiMethod, Test.class.getName(), false) && !psiMethod.hasModifierProperty(PsiModifier.PRIVATE)) {
-        testMethod = psiMethod;
-      }
-    }
-    if (inClass == null) {
-      final PsiMethod psiMethod;
-      if (testMethod != null) {
-        psiMethod = (PsiMethod)clazz.addBefore(patternMethod, testMethod);
-      } else {
-        psiMethod = (PsiMethod)clazz.add(patternMethod);
-      }
-      JavaCodeStyleManager.getInstance(clazz.getProject()).shortenClassReferences(clazz);
-      return psiMethod;
-    }
-    else if (inClass.getBody() == null) {
-      return (PsiMethod)inClass.replace(patternMethod);
-    }
-    return inClass;
-  }
+	@Override
+	public char getMnemonic()
+	{
+		return 'N';
+	}
 
-  public FileTemplateDescriptor getSetUpMethodFileTemplateDescriptor() {
-    return new FileTemplateDescriptor("TestNG SetUp Method.java");
-  }
+	@Override
+	public FileTemplateDescriptor getSetUpMethodFileTemplateDescriptor()
+	{
+		return new FileTemplateDescriptor("TestNG SetUp Method.java");
+	}
 
-  public FileTemplateDescriptor getTearDownMethodFileTemplateDescriptor() {
-    return new FileTemplateDescriptor("TestNG TearDown Method.java");
-  }
+	@Override
+	public FileTemplateDescriptor getTearDownMethodFileTemplateDescriptor()
+	{
+		return new FileTemplateDescriptor("TestNG TearDown Method.java");
+	}
 
-  public FileTemplateDescriptor getTestMethodFileTemplateDescriptor() {
-    return new FileTemplateDescriptor("TestNG Test Method.java");
-  }
+	@Override
+	public FileTemplateDescriptor getTestMethodFileTemplateDescriptor()
+	{
+		return new FileTemplateDescriptor("TestNG Test Method.java");
+	}
 
-  @Override
-  public boolean isTestMethod(PsiElement element) {
-    return element instanceof PsiMethod && TestNGUtil.hasTest((PsiModifierListOwner)element);
-  }
+	@Override
+	public boolean isTestMethod(PsiElement element)
+	{
+		return element instanceof PsiMethod && TestNGUtil.hasTest((PsiModifierListOwner) element);
+	}
 }

@@ -218,7 +218,7 @@ public class TestNGRunnableState extends JavaCommandLineState
 				final TestNGResults resultsView = console.getResultsView();
 				if(resultsView != null)
 				{
-					resultsView.finish();
+					resultsView.finish(myStarted);
 				}
 			}
 

@@ -22,6 +22,10 @@
  */
 package com.theoryinpractice.testng.ui;
 
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+
+import org.testng.remote.strprotocol.TestResultMessage;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestTreeView;
@@ -31,107 +35,122 @@ import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.model.TestNGConsoleProperties;
 import com.theoryinpractice.testng.model.TestProxy;
 import com.theoryinpractice.testng.model.TreeRootNode;
-import org.testng.remote.strprotocol.TestResultMessage;
 
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+public class TestNGConsoleView extends BaseTestsOutputConsoleView
+{
+	private TestNGResults testNGResults;
+	private TestProxy currentTest;
 
-public class TestNGConsoleView extends BaseTestsOutputConsoleView {
-  private TestNGResults testNGResults;
-  private TestProxy currentTest;
+	private int myExceptionalMark = -1;
+	private final TestNGConfiguration myConfiguration;
+	private final ExecutionEnvironment myEnvironment;
+	private final TreeRootNode myUnboundOutput;
 
-  private int myExceptionalMark = -1;
-  private final TestNGConfiguration myConfiguration;
-  private final ExecutionEnvironment myEnvironment;
-  private final TreeRootNode myUnboundOutput;
+	public TestNGConsoleView(TestNGConfiguration config, ExecutionEnvironment environment, final TreeRootNode unboundOutputRoot, Executor executor)
+	{
+		super(new TestNGConsoleProperties(config, executor), unboundOutputRoot);
+		myConfiguration = config;
+		myEnvironment = environment;
+		myUnboundOutput = unboundOutputRoot;
+	}
 
-  public TestNGConsoleView(TestNGConfiguration config,
-                           ExecutionEnvironment environment,
-                           final TreeRootNode unboundOutputRoot,
-                           Executor executor) {
-    super(new TestNGConsoleProperties(config, executor), unboundOutputRoot);
-    myConfiguration = config;
-    myEnvironment = environment;
-    myUnboundOutput = unboundOutputRoot;
-  }
+	protected TestResultsPanel createTestResultsPanel()
+	{
+		testNGResults = new TestNGResults(getConsole().getComponent(), myConfiguration, this);
+		return testNGResults;
+	}
 
-  protected TestResultsPanel createTestResultsPanel() {
-    testNGResults = new TestNGResults(getConsole().getComponent(), myConfiguration, this, myEnvironment);
-    return testNGResults;
-  }
+	public TreeRootNode getUnboundOutput()
+	{
+		return myUnboundOutput;
+	}
 
-  public TreeRootNode getUnboundOutput() {
-    return myUnboundOutput;
-  }
+	@Override
+	public void initUI()
+	{
+		super.initUI();
+		final TestTreeView testTreeView = testNGResults.getTreeView();
+		testTreeView.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener()
+		{
+			public void valueChanged(TreeSelectionEvent e)
+			{
+				getPrinter().updateOnTestSelected(testTreeView.getSelectedTest());
+			}
+		});
+	}
 
-  @Override
-  public void initUI() {
-    super.initUI();
-    final TestTreeView testTreeView = testNGResults.getTreeView();
-    testTreeView.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
-      public void valueChanged(TreeSelectionEvent e) {
-        getPrinter().updateOnTestSelected(testTreeView.getSelectedTest());
-      }
-    });
-  }
+	@Override
+	public void dispose()
+	{
+		super.dispose();
+		testNGResults = null;
+	}
 
-  @Override
-  public void dispose() {
-    super.dispose();
-    testNGResults = null;
-  }
+	public TestNGResults getResultsView()
+	{
+		return testNGResults;
+	}
 
-  public TestNGResults getResultsView() {
-    return testNGResults;
-  }
+	public void rebuildTree()
+	{
+		if(testNGResults != null)
+		{
+			testNGResults.rebuildTree();
+		}
+	}
 
-  public void rebuildTree() {
-    if (testNGResults != null) {
-      testNGResults.rebuildTree();
-    }
-  }
+	public void addTestResult(TestResultMessage result)
+	{
+		if(testNGResults != null)
+		{
+			int exceptionMark = myExceptionalMark == -1 ? 0 : myExceptionalMark;
 
-  public void addTestResult(TestResultMessage result) {
-    if (testNGResults != null) {
-      int exceptionMark = myExceptionalMark == -1 ? 0 : myExceptionalMark;
+			if(currentTest != null)
+			{
+				final String stackTrace = result.getStackTrace();
+				if(stackTrace != null && stackTrace.length() > 10)
+				{
+					exceptionMark = currentTest.getCurrentSize();
+					//trim useless crud from stacktrace
+					currentTest.appendStacktrace(result);
+				}
+				final TestProxy failedToStart = testNGResults.getFailedToStart();
+				if(failedToStart != null)
+				{
+					currentTest.addChild(failedToStart);
+				}
+			}
+			testNGResults.addTestResult(result, exceptionMark);
+			myExceptionalMark = -1;
+		}
+	}
 
-      if (currentTest != null) {
-        final String stackTrace = result.getStackTrace();
-        if (stackTrace != null && stackTrace.length() > 10) {
-          exceptionMark = currentTest.getCurrentSize();
-          //trim useless crud from stacktrace
-          currentTest.appendStacktrace(result);
-        }
-        final TestProxy failedToStart = testNGResults.getFailedToStart();
-        if (failedToStart != null) {
-          currentTest.addChild(failedToStart);
-        }
-      }
-      testNGResults.addTestResult(result, exceptionMark);
-      myExceptionalMark = -1;
-    }
-  }
+	public void testStarted(TestResultMessage result)
+	{
+		if(testNGResults != null)
+		{
+			currentTest = testNGResults.testStarted(result);
+		}
+	}
 
-  public void testStarted(TestResultMessage result) {
-    if (testNGResults != null) {
-      currentTest = testNGResults.testStarted(result);
-    }
-  }
+	public TestProxy getCurrentTest()
+	{
+		return currentTest;
+	}
 
-  public TestProxy getCurrentTest() {
-    return currentTest;
-  }
-
-  public void finish() {
-    if (currentTest != null && testNGResults != null) {
-      final TestProxy failedToStart = testNGResults.getFailedToStart();
-      if (failedToStart != null) {
-        currentTest.addChild(failedToStart);
-        currentTest.setTearDownFailure(true);
-        testNGResults.setFailedToStart(null);
-      }
-    }
-    currentTest = null;
-  }
+	public void finish()
+	{
+		if(currentTest != null && testNGResults != null)
+		{
+			final TestProxy failedToStart = testNGResults.getFailedToStart();
+			if(failedToStart != null)
+			{
+				currentTest.addChild(failedToStart);
+				currentTest.setTearDownFailure(true);
+				testNGResults.setFailedToStart(null);
+			}
+		}
+		currentTest = null;
+	}
 
 }

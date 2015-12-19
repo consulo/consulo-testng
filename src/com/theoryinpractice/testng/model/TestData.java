@@ -15,6 +15,15 @@
  */
 package com.theoryinpractice.testng.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.consulo.psi.PsiPackage;
 import com.intellij.execution.ExternalizablePath;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
@@ -26,11 +35,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaPackage;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.consulo.psi.PsiPackage;
-
-import java.util.*;
 
 /**
  * @author Hani Suleiman Date: Jul 20, 2005 Time: 1:11:01 PM
@@ -222,7 +234,7 @@ public class TestData implements Cloneable
 
   public Module setMainClass(PsiClass psiclass) {
     MAIN_CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(psiclass);
-    PsiJavaPackage psipackage = JUnitUtil.getContainingPackage(psiclass);
+    PsiJavaPackage psipackage = (PsiJavaPackage) JUnitUtil.getContainingPackage(psiclass);
     PACKAGE_NAME = psipackage == null ? "" : psipackage.getQualifiedName();
     return JavaExecutionUtil.findModule(psiclass);
   }

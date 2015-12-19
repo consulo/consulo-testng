@@ -17,6 +17,7 @@
 				implementation="com.theoryinpractice.testng.intention.OverrideImplementsTestNGAnnotationsHandler"/>
 		<methodReferencesSearch implementation="com.theoryinpractice.testng.DataProviderSearcher"/>
 		<cantBeStatic implementation="com.theoryinpractice.testng.inspection.TestNGCanBeStaticExtension"/>
+		<testFramework implementation="com.theoryinpractice.testng.TestNGFramework"/>
 	</extensions>
 
 	<extensions defaultExtensionNs="com.intellij.xml">
@@ -74,7 +75,6 @@
 		<intentionAction>
 			<className>com.theoryinpractice.testng.intention.TestNGOrderEntryFix</className>
 		</intentionAction>
-		<testFramework implementation="com.theoryinpractice.testng.TestNGFramework"/>
 		<forcedElementWeigher implementation="com.theoryinpractice.testng.TestNGForcedElementWeigher"/>
 		<gotoRelatedProvider implementation="com.theoryinpractice.testng.TestNGRelatedFilesProvider"/>
 	</extensions>
