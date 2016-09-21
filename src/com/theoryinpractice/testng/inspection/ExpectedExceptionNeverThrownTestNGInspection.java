@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mustbe.consulo.java.util.JavaClassNames;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
@@ -29,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.util.InheritanceUtil;
+import consulo.java.module.util.JavaClassNames;
 
 /**
  * @author Bas Leijdekkers

@@ -1,17 +1,17 @@
 <idea-plugin>
-	<id>org.mustbe.consulo.testng</id>
+	<id>consulo.testng</id>
 	<name>TestNG-J</name>
 	<description>TestNG Integration</description>
 	<version>SNAPSHOT</version>
 	<vendor>Theory In Practice</vendor>
 	<category>Test Frameworks</category>
-	<depends>org.consulo.java</depends>
+	<depends>consulo.java</depends>
 
 	<extensionPoints>
-		<extensionPoint qualifiedName="com.theoryinpractice.testng.listener" interface="org.testng.IDEATestNGListener"/>
+		<extensionPoint name="listener" interface="org.testng.IDEATestNGListener"/>
 	</extensionPoints>
 
-	<extensions defaultExtensionNs="org.consulo.java">
+	<extensions defaultExtensionNs="consulo.java">
 		<deadCode implementation="com.theoryinpractice.testng.inspection.TestNGEntryPoint"/>
 		<overrideImplementsAnnotationsHandler
 				implementation="com.theoryinpractice.testng.intention.OverrideImplementsTestNGAnnotationsHandler"/>
@@ -25,7 +25,6 @@
 	</extensions>
 
 	<extensions defaultExtensionNs="com.intellij">
-		<errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
 		<runConfigurationProducer implementation="com.theoryinpractice.testng.configuration.TestNGPatternConfigurationProducer"/>
 		<runConfigurationProducer implementation="com.theoryinpractice.testng.configuration.TestNGInClassConfigurationProducer"/>
 		<runConfigurationProducer implementation="com.theoryinpractice.testng.configuration.TestNGPackageConfigurationProducer"/>

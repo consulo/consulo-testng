@@ -32,7 +32,6 @@ import javax.swing.SwingUtilities;
 
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.mustbe.consulo.java.module.extension.JavaModuleExtension;
 import org.testng.CommandLineArgs;
 import org.testng.IDEATestNGListener;
 import org.testng.RemoteTestNGStarter;
@@ -100,6 +99,7 @@ import com.theoryinpractice.testng.model.TreeRootNode;
 import com.theoryinpractice.testng.ui.TestNGConsoleView;
 import com.theoryinpractice.testng.ui.TestNGResults;
 import com.theoryinpractice.testng.ui.actions.RerunFailedTestsAction;
+import consulo.java.module.extension.JavaModuleExtension;
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessageTypes;
 
 public class TestNGRunnableState extends JavaCommandLineState

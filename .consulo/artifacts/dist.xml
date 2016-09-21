@@ -2,7 +2,7 @@
   <artifact build-on-make="true" name="dist">
     <output-path>$PROJECT_DIR$/out/artifacts/dist</output-path>
     <root id="root">
-      <element id="directory" name="testng">
+      <element id="directory" name="consulo.testng">
         <element id="directory" name="lib">
           <element id="library" level="project" name="testng" />
           <element id="zip-archive" name="testng-plugin.jar">

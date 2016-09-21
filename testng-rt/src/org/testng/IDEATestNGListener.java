@@ -24,5 +24,5 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 
 public interface IDEATestNGListener extends ITestListener
 {
-	ExtensionPointName<IDEATestNGListener> EP_NAME = ExtensionPointName.create("com.theoryinpractice.testng.listener");
+	ExtensionPointName<IDEATestNGListener> EP_NAME = ExtensionPointName.create("consulo.testng.listener");
 }
