@@ -17,10 +17,10 @@ package com.theoryinpractice.testng.configuration;
 
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryDependencyScopeSuggester;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import consulo.roots.types.BinariesOrderRootType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public class TestNGDependencyScopeSuggester extends LibraryDependencyScopeSugges
   @Nullable
   @Override
   public DependencyScope getDefaultDependencyScope(@NotNull Library library) {
-    VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+    VirtualFile[] files = library.getFiles(BinariesOrderRootType.getInstance());
     if (files.length == 1 && LibraryUtil.isClassAvailableInLibrary(files, "org.testng.annotations.Test")) {
       return DependencyScope.TEST;
     }

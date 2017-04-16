@@ -22,15 +22,9 @@
  */
 package com.theoryinpractice.testng;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.testng.annotations.DataProvider;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.completion.CompletionUtil;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupValueFactory;
 import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.openapi.project.Project;
@@ -48,6 +42,13 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ProcessingContext;
 import com.theoryinpractice.testng.inspection.DependsOnGroupsInspection;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.testng.annotations.DataProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestNGReferenceContributor extends PsiReferenceContributor {
   private static PsiElementPattern.Capture<PsiLiteralExpression> getElementPattern(String annotation) {
@@ -146,14 +147,14 @@ public class TestNGReferenceContributor extends PsiReferenceContributor {
               if ("name".equals(value.getName())) {
                 final PsiAnnotationMemberValue memberValue = value.getValue();
                 if (memberValue != null) {
-                  list.add(LookupValueFactory.createLookupValue(StringUtil.unquoteString(memberValue.getText()), null));
+                  list.add(LookupElementBuilder.create(StringUtil.unquoteString(memberValue.getText())));
                   nameFoundInAttributes = true;
                   break;
                 }
               }
             }
             if (!nameFoundInAttributes) {
-              list.add(LookupValueFactory.createLookupValue(method.getName(), null));
+              list.add(LookupElementBuilder.create(method.getName()));
             }
           }
         }

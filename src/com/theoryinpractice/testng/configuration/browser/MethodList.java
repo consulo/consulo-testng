@@ -75,7 +75,7 @@ public class MethodList extends JPanel
             }
         });
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ListScrollingUtil.ensureSelectionExists(list);
+        ScrollingUtil.ensureSelectionExists(list);
     }
 
     private void evaluate(PsiMethod methods[], Condition<PsiMethod> condition)

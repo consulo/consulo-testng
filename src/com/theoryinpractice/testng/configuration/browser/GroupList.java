@@ -17,8 +17,8 @@ package com.theoryinpractice.testng.configuration.browser;
 
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.psi.PsiClass;
-import com.intellij.ui.ListScrollingUtil;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.ScrollingUtil;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
@@ -50,7 +50,7 @@ public class GroupList extends JPanel
         model.addAll(array);
         add(ScrollPaneFactory.createScrollPane(list));
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ListScrollingUtil.ensureSelectionExists(list);
+        ScrollingUtil.ensureSelectionExists(list);
     }
 
     public String getSelected()
