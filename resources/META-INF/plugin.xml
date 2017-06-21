@@ -18,6 +18,7 @@
 		<methodReferencesSearch implementation="com.theoryinpractice.testng.DataProviderSearcher"/>
 		<cantBeStatic implementation="com.theoryinpractice.testng.inspection.TestNGCanBeStaticExtension"/>
 		<testFramework implementation="com.theoryinpractice.testng.TestNGFramework"/>
+		<codeInsight.externalLibraryResolver implementation="com.theoryinpractice.testng.intention.TestNGExternalLibraryResolver"/>
 	</extensions>
 
 	<extensions defaultExtensionNs="com.intellij.xml">
@@ -70,10 +71,6 @@
 		<localInspection language="JAVA" shortName="MisorderedAssertEqualsArgumentsTestNG" displayName="Misordered 'assertEquals()' arguments"
 						 groupName="TestNG" enabledByDefault="false" level="WARNING"
 						 implementationClass="com.theoryinpractice.testng.inspection.MisorderedAssertEqualsArgumentsTestNGInspection"/>
-
-		<intentionAction>
-			<className>com.theoryinpractice.testng.intention.TestNGOrderEntryFix</className>
-		</intentionAction>
 		<forcedElementWeigher implementation="com.theoryinpractice.testng.TestNGForcedElementWeigher"/>
 		<gotoRelatedProvider implementation="com.theoryinpractice.testng.TestNGRelatedFilesProvider"/>
 	</extensions>

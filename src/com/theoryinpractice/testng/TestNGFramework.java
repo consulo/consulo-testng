@@ -27,6 +27,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.ide.fileTemplates.FileTemplateDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.roots.ExternalLibraryDescriptor;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.JavaPsiFacade;
@@ -41,7 +42,7 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.testIntegration.JavaTestFramework;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.PathUtil;
+import com.theoryinpractice.testng.intention.TestNGExternalLibraryResolver;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import icons.TestngIcons;
 
@@ -68,17 +69,9 @@ public class TestNGFramework extends JavaTestFramework
 	}
 
 	@Override
-	@NotNull
-	public String getLibraryPath()
+	public ExternalLibraryDescriptor getFrameworkLibraryDescriptor()
 	{
-		try
-		{
-			return PathUtil.getJarPathForClass(Class.forName("org.testng.annotations.Test"));
-		}
-		catch(ClassNotFoundException e)
-		{
-			throw new RuntimeException(e);
-		}
+		return TestNGExternalLibraryResolver.TESTNG_DESCRIPTOR;
 	}
 
 	@Override
@@ -142,8 +135,8 @@ public class TestNGFramework extends JavaTestFramework
 		PsiMethod inClass = clazz.findMethodBySignature(patternMethod, false);
 		if(inClass != null)
 		{
-			int exit = ApplicationManager.getApplication().isUnitTestMode() ? DialogWrapper.OK_EXIT_CODE : Messages.showYesNoDialog("Method \'" + setUpName + "\' already exist but is not annotated " +
-					"as @BeforeMethod.", CommonBundle.getWarningTitle(), "Annotate", "Create new method", Messages.getWarningIcon());
+			int exit = ApplicationManager.getApplication().isUnitTestMode() ? DialogWrapper.OK_EXIT_CODE : Messages.showYesNoDialog("Method \'" + setUpName + "\' already exist but is not annotated "
+					+ "as @BeforeMethod.", CommonBundle.getWarningTitle(), "Annotate", "Create new method", Messages.getWarningIcon());
 			if(exit == DialogWrapper.OK_EXIT_CODE)
 			{
 				new AddAnnotationFix(BeforeMethod.class.getName(), inClass).invoke(inClass.getProject(), null, inClass.getContainingFile());
