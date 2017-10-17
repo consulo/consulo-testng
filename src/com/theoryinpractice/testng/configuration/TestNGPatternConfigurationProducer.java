@@ -20,6 +20,9 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
@@ -30,13 +33,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Ref;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassOwner;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierListOwner;
 import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestType;
 import com.theoryinpractice.testng.util.TestNGUtil;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class TestNGPatternConfigurationProducer extends TestNGConfigurationProducer{
 
@@ -81,7 +87,7 @@ public class TestNGPatternConfigurationProducer extends TestNGConfigurationProdu
 
   private static PsiElement[] collectPatternElements(ConfigurationContext context, LinkedHashSet<String> classes) {
     final DataContext dataContext = context.getDataContext();
-    PsiElement[] elements = LangDataKeys.PSI_ELEMENT_ARRAY.getData(dataContext);
+    PsiElement[] elements = dataContext.getData(LangDataKeys.PSI_ELEMENT_ARRAY);
     if (elements != null) {
       for (PsiMember psiMember : collectTestMembers(elements)) {
         if (psiMember instanceof PsiClass) {
@@ -92,7 +98,7 @@ public class TestNGPatternConfigurationProducer extends TestNGConfigurationProdu
       }
       return elements;
     } else {
-      final PsiFile file = LangDataKeys.PSI_FILE.getData(dataContext);
+      final PsiFile file = dataContext.getData(LangDataKeys.PSI_FILE);
       if (file instanceof PsiClassOwner) {
         for (PsiMember psiMember : collectTestMembers(((PsiClassOwner)file).getClasses())) {
           classes.add(((PsiClass)psiMember).getQualifiedName());

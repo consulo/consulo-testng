@@ -20,6 +20,8 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import java.util.List;
+
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -30,12 +32,14 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassOwner;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.theoryinpractice.testng.util.TestNGUtil;
-
-import java.util.List;
 
 public class TestNGInClassConfigurationProducer extends TestNGConfigurationProducer{
   private PsiElement myPsiElement = null;
@@ -90,7 +94,7 @@ public class TestNGInClassConfigurationProducer extends TestNGConfigurationProdu
   protected boolean setupConfigurationFromContext(TestNGConfiguration configuration,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    final PsiElement[] elements = context != null ? LangDataKeys.PSI_ELEMENT_ARRAY.getData(context.getDataContext()) : null;
+    final PsiElement[] elements = context != null ? context.getDataContext().getData(LangDataKeys.PSI_ELEMENT_ARRAY) : null;
     if (elements != null && TestNGPatternConfigurationProducer.collectTestMembers(elements).size() > 1) {
       return false;
     }

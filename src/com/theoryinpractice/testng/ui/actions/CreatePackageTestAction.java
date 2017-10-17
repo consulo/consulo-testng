@@ -44,7 +44,7 @@ public class CreatePackageTestAction extends AnAction {
     event.getPresentation().setEnabled(pkg != null);
     if (pkg != null) {
       event.getPresentation().setText("Create \"Tests in '" + pkg.getQualifiedName() + "'\"...");
-      module = LangDataKeys.MODULE.getData(event.getDataContext());
+      module = event.getData(LangDataKeys.MODULE);
     }
     else {
       module = null;
@@ -62,7 +62,7 @@ public class CreatePackageTestAction extends AnAction {
   }
 
   PsiJavaPackage getSelectedPackage(DataContext context) {
-    final PsiElement element = LangDataKeys.PSI_ELEMENT.getData(context);
+    final PsiElement element = context.getData(LangDataKeys.PSI_ELEMENT);
     if (element == null) {
       return null;
     }
