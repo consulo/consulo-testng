@@ -33,7 +33,7 @@ import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
 
 /**
- * @author Hani Suleiman Date: Jul 21, 2005 Time: 1:20:14 PM
+ * @author Hani Suleiman
  */
 public class TestNGConfigurationModel
 {
@@ -48,7 +48,7 @@ public class TestNGConfigurationModel
 
 	public TestNGConfigurationModel(Project project)
 	{
-		type = TestType.INVALID;
+		type = TestType.CLASS;
 		for(int i = 3; i < typeDocuments.length; i++)
 		{
 			typeDocuments[i] = new PlainDocument();
@@ -132,18 +132,17 @@ public class TestNGConfigurationModel
 			data.METHOD_NAME = "";
 			data.SUITE_NAME = "";
 		}
-		else if(TestType.METHOD == type || TestType.CLASS == type)
+		else if(TestType.METHOD == type || TestType.CLASS == type || TestType.SOURCE == type)
 		{
 			String className = getText(TestType.CLASS);
 			data.GROUP_NAME = "";
 			data.SUITE_NAME = "";
-			if(TestType.METHOD == type)
+			if(TestType.METHOD == type || TestType.SOURCE == type)
 			{
 				data.METHOD_NAME = getText(TestType.METHOD);
 			}
 
-			PsiClass psiClass = !getProject().isDefault() && !StringUtil.isEmptyOrSpaces(className) ? JUnitUtil.findPsiClass(className, module,
-					getProject()) : null;
+			PsiClass psiClass = !getProject().isDefault() && !StringUtil.isEmptyOrSpaces(className) ? JUnitUtil.findPsiClass(className, module, getProject()) : null;
 			if(psiClass != null && psiClass.isValid())
 			{
 				data.setMainClass(psiClass);
@@ -164,7 +163,7 @@ public class TestNGConfigurationModel
 		}
 		else if(TestType.PATTERN == type)
 		{
-			final LinkedHashSet<String> set = new LinkedHashSet<String>();
+			final LinkedHashSet<String> set = new LinkedHashSet<>();
 			final String[] patterns = getText(TestType.PATTERN).split("\\|\\|");
 			for(String pattern : patterns)
 			{
@@ -259,17 +258,9 @@ public class TestNGConfigurationModel
 		}
 		else
 		{
-			WriteCommandAction.runWriteCommandAction(project, new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					((com.intellij.openapi.editor.Document) document).replaceString(0, ((com.intellij.openapi.editor.Document) document)
-							.getTextLength(), value);
-				}
-			});
+			WriteCommandAction.runWriteCommandAction(project, () -> ((com.intellij.openapi.editor.Document) document).replaceString(0, ((com.intellij.openapi.editor.Document) document).getTextLength
+					(), value));
 		}
-
 	}
 
 	private void setType(String s)

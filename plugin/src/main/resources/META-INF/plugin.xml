@@ -22,10 +22,16 @@
 	</extensions>
 
 	<extensions defaultExtensionNs="com.intellij.xml">
-		<standardResourceProvider implementation="com.theoryinpractice.testng.TestNGPlugin"/>
+		<standardResource url="http://testng.org/testng-1.0.dtd" path="resources/standardSchemas/testng-1.0.dtd"/>
+	</extensions>
+
+	<extensions defaultExtensionNs="consulo.testng">
+		<!--<listener implementation="org.testng.TestNGTestDiscoveryListener"/>-->
 	</extensions>
 
 	<extensions defaultExtensionNs="com.intellij">
+		<programRunner implementation="com.theoryinpractice.testng.configuration.TestNGDebuggerRunner"/>
+
 		<runConfigurationProducer implementation="com.theoryinpractice.testng.configuration.TestNGPatternConfigurationProducer"/>
 		<runConfigurationProducer implementation="com.theoryinpractice.testng.configuration.TestNGInClassConfigurationProducer"/>
 		<runConfigurationProducer implementation="com.theoryinpractice.testng.configuration.TestNGPackageConfigurationProducer"/>

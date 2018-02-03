@@ -20,17 +20,17 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import com.intellij.openapi.application.PluginPathManager;
-import com.intellij.testFramework.InspectionTestCase;
-import com.intellij.util.ui.UIUtil;
-import com.theoryinpractice.testng.util.TestNGUtil;
 import org.jetbrains.annotations.NonNls;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import com.intellij.testFramework.InspectionFixtureTestCase;
+import com.intellij.util.ui.UIUtil;
+import com.theoryinpractice.testng.util.TestNGUtil;
 
-public class UndeclaredTestsInspectionTest extends InspectionTestCase {
+public class UndeclaredTestsInspectionTest extends InspectionFixtureTestCase
+{
 
   @Override
   public String getName() {
@@ -65,11 +65,6 @@ public class UndeclaredTestsInspectionTest extends InspectionTestCase {
         }
       }
     });
-  }
-
-  @NonNls
-  protected String getTestDataPath() {
-    return PluginPathManager.getPluginHomePath("testng") + "/testData/inspection";
   }
 
   @DataProvider

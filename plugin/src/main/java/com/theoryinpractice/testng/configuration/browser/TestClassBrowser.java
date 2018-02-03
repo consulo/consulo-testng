@@ -15,7 +15,6 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
@@ -32,74 +31,95 @@ import com.theoryinpractice.testng.configuration.TestNGConfigurationType;
 import com.theoryinpractice.testng.model.TestClassFilter;
 
 /**
- * @author Hani Suleiman Date: Jul 20, 2005 Time: 2:02:00 PM
+ * @author Hani Suleiman
  */
 public class TestClassBrowser extends BrowseModuleValueActionListener
 {
-  protected TestNGConfigurationEditor editor;
+	protected TestNGConfigurationEditor editor;
 
-  public TestClassBrowser(Project project, TestNGConfigurationEditor editor) {
-    super(project);
-    this.editor = editor;
-  }
+	public TestClassBrowser(Project project, TestNGConfigurationEditor editor)
+	{
+		super(project);
+		this.editor = editor;
+	}
 
-  @Override
-  protected String showDialog() {
-    ClassFilter.ClassFilterWithScope filter;
-    try {
-      filter = getFilter();
-    }
-    catch (MessageInfoException e) {
-      MessagesEx.MessageInfo message = e.getMessageInfo();
-      message.showNow();
-      return null;
-    }
-    TreeClassChooser chooser = TreeClassChooserFactory.getInstance(getProject()).createWithInnerClassesScopeChooser("Choose Test Class", filter.getScope(), filter, null);
-    init(chooser);
-    chooser.showDialog();
-    PsiClass psiclass = chooser.getSelected();
-    if (psiclass == null) {
-      return null;
-    } else {
-      onClassChoosen(psiclass);
-      return JavaExecutionUtil.getRuntimeQualifiedName(psiclass);
-    }
-  }
+	@Override
+	protected String showDialog()
+	{
+		ClassFilter.ClassFilterWithScope filter;
+		try
+		{
+			filter = getFilter();
+		}
+		catch(MessageInfoException e)
+		{
+			MessagesEx.MessageInfo message = e.getMessageInfo();
+			message.showNow();
+			return null;
+		}
+		TreeClassChooser chooser = TreeClassChooserFactory.getInstance(getProject()).createWithInnerClassesScopeChooser("Choose Test Class", filter.getScope(), filter, null);
+		init(chooser);
+		chooser.showDialog();
+		PsiClass psiclass = chooser.getSelected();
+		if(psiclass == null)
+		{
+			return null;
+		}
+		else
+		{
+			onClassChoosen(psiclass);
+			return psiclass.getQualifiedName();
+		}
+	}
 
-  protected void onClassChoosen(PsiClass psiClass) {
-  }
+	protected void onClassChoosen(PsiClass psiClass)
+	{
+	}
 
-  protected PsiClass findClass(String className) {
-    return editor.getModuleSelector().findClass(className);
-  }
+	protected PsiClass findClass(String className)
+	{
+		return editor.getModuleSelector().findClass(className);
+	}
 
-  public ClassFilter.ClassFilterWithScope getFilter() throws MessageInfoException {
-    TestNGConfiguration config = new TestNGConfiguration("<no-name>", getProject(), TestNGConfigurationType.getInstance().getConfigurationFactories()[0]);
-    editor.applyEditorTo(config);
-    GlobalSearchScope scope = getSearchScope(config.getModules());
-    if (scope == null) {
-      throw new MessageInfoException(new MessagesEx.MessageInfo(getProject(), "No classes found in project", "Can't Browse Tests"));
-    }
-    return new TestClassFilter(scope, getProject(), false);
-  }
+	public ClassFilter.ClassFilterWithScope getFilter() throws MessageInfoException
+	{
+		TestNGConfiguration config = new TestNGConfiguration("<no-name>", getProject(), TestNGConfigurationType.getInstance().getConfigurationFactories()[0]);
+		editor.applyEditorTo(config);
+		GlobalSearchScope scope = getSearchScope(config.getModules());
+		if(scope == null)
+		{
+			scope = GlobalSearchScope.allScope(getProject());
+		}
+		return new TestClassFilter(scope, getProject(), false);
+	}
 
-  protected GlobalSearchScope getSearchScope(Module[] modules) {
-    if (modules == null || modules.length == 0) return null;
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesScope(modules[0]);
-    for (int i = 1; i < modules.length; i++) {
-      scope.uniteWith(GlobalSearchScope.moduleWithDependenciesScope(modules[i]));
-    }
-    return scope;
-  }
+	protected GlobalSearchScope getSearchScope(Module[] modules)
+	{
+		if(modules == null || modules.length == 0)
+		{
+			return null;
+		}
+		GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesScope(modules[0]);
+		for(int i = 1; i < modules.length; i++)
+		{
+			scope.uniteWith(GlobalSearchScope.moduleWithDependenciesScope(modules[i]));
+		}
+		return scope;
+	}
 
-  private void init(TreeClassChooser chooser) {
-    String s = getText();
-    PsiClass psiclass = findClass(s);
-    if (psiclass == null)
-      return;
-    com.intellij.psi.PsiDirectory psidirectory = psiclass.getContainingFile().getContainingDirectory();
-    if (psidirectory != null)
-      chooser.selectDirectory(psidirectory);
-    chooser.select(psiclass);
-  }
+	private void init(TreeClassChooser chooser)
+	{
+		String s = getText();
+		PsiClass psiclass = findClass(s);
+		if(psiclass == null)
+		{
+			return;
+		}
+		com.intellij.psi.PsiDirectory psidirectory = psiclass.getContainingFile().getContainingDirectory();
+		if(psidirectory != null)
+		{
+			chooser.selectDirectory(psidirectory);
+		}
+		chooser.select(psiclass);
+	}
 }

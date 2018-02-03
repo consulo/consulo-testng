@@ -1,19 +1,8 @@
-/*
- * Copyright 2000-2009 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.theoryinpractice.testng;
+
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.Icon;
 
@@ -25,10 +14,10 @@ import org.testng.annotations.Test;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
+import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplateDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ExternalLibraryDescriptor;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -42,12 +31,16 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.testIntegration.JavaTestFramework;
 import com.intellij.util.IncorrectOperationException;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationType;
 import com.theoryinpractice.testng.intention.TestNGExternalLibraryResolver;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import icons.TestngIcons;
 
 public class TestNGFramework extends JavaTestFramework
 {
+	private final static List<String> SECONDARY_BEFORE_ANNOTATIONS = Arrays.asList("org.testng.annotations.BeforeTest", "org.testng.annotations.BeforeClass", "org.testng.annotations.BeforeSuite",
+			"org.testng.annotations.BeforeGroups");
+
 	@Override
 	@NotNull
 	public String getName()
@@ -97,7 +90,7 @@ public class TestNGFramework extends JavaTestFramework
 	{
 		for(PsiMethod each : clazz.getMethods())
 		{
-			if(AnnotationUtil.isAnnotated(each, "org.testng.annotations.BeforeMethod", false))
+			if(AnnotationUtil.isAnnotated(each, "org.testng.annotations.BeforeMethod", 0))
 			{
 				return each;
 			}
@@ -111,7 +104,7 @@ public class TestNGFramework extends JavaTestFramework
 	{
 		for(PsiMethod each : clazz.getMethods())
 		{
-			if(AnnotationUtil.isAnnotated(each, "org.testng.annotations.AfterMethod", false))
+			if(AnnotationUtil.isAnnotated(each, "org.testng.annotations.AfterMethod", 0))
 			{
 				return each;
 			}
@@ -135,14 +128,18 @@ public class TestNGFramework extends JavaTestFramework
 		PsiMethod inClass = clazz.findMethodBySignature(patternMethod, false);
 		if(inClass != null)
 		{
-			int exit = ApplicationManager.getApplication().isUnitTestMode() ? DialogWrapper.OK_EXIT_CODE : Messages.showYesNoDialog("Method \'" + setUpName + "\' already exist but is not annotated "
-					+ "as @BeforeMethod.", CommonBundle.getWarningTitle(), "Annotate", "Create new method", Messages.getWarningIcon());
-			if(exit == DialogWrapper.OK_EXIT_CODE)
+			if(AnnotationUtil.isAnnotated(inClass, SECONDARY_BEFORE_ANNOTATIONS, 0))
+			{
+				return inClass;
+			}
+			int exit = ApplicationManager.getApplication().isUnitTestMode() ? Messages.YES : Messages.showYesNoDialog(manager.getProject(), "Method \'" + setUpName + "\' already exist but is not " +
+					"annotated as @BeforeMethod.", CommonBundle.getWarningTitle(), "Annotate", "Create new method", Messages.getWarningIcon());
+			if(exit == Messages.YES)
 			{
 				new AddAnnotationFix(BeforeMethod.class.getName(), inClass).invoke(inClass.getProject(), null, inClass.getContainingFile());
 				return inClass;
 			}
-			else if(exit == DialogWrapper.CANCEL_EXIT_CODE)
+			else if(exit == Messages.NO)
 			{
 				inClass = null;
 				int i = 0;
@@ -182,11 +179,11 @@ public class TestNGFramework extends JavaTestFramework
 		PsiMethod testMethod = null;
 		for(PsiMethod psiMethod : psiMethods)
 		{
-			if(inClass == null && AnnotationUtil.isAnnotated(psiMethod, BeforeMethod.class.getName(), false))
+			if(inClass == null && AnnotationUtil.isAnnotated(psiMethod, BeforeMethod.class.getName(), 0))
 			{
 				inClass = psiMethod;
 			}
-			if(testMethod == null && AnnotationUtil.isAnnotated(psiMethod, Test.class.getName(), false) && !psiMethod.hasModifierProperty(PsiModifier.PRIVATE))
+			if(testMethod == null && AnnotationUtil.isAnnotated(psiMethod, Test.class.getName(), 0) && !psiMethod.hasModifierProperty(PsiModifier.PRIVATE))
 			{
 				testMethod = psiMethod;
 			}
@@ -219,6 +216,12 @@ public class TestNGFramework extends JavaTestFramework
 	}
 
 	@Override
+	public FileTemplateDescriptor getTestClassFileTemplateDescriptor()
+	{
+		return new FileTemplateDescriptor("TestNG Test Class.java");
+	}
+
+	@Override
 	public FileTemplateDescriptor getSetUpMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("TestNG SetUp Method.java");
@@ -231,14 +234,28 @@ public class TestNGFramework extends JavaTestFramework
 	}
 
 	@Override
+	@NotNull
 	public FileTemplateDescriptor getTestMethodFileTemplateDescriptor()
 	{
 		return new FileTemplateDescriptor("TestNG Test Method.java");
 	}
 
+	@Nullable
 	@Override
-	public boolean isTestMethod(PsiElement element)
+	public FileTemplateDescriptor getParametersMethodFileTemplateDescriptor()
+	{
+		return new FileTemplateDescriptor("TestNG Parameters Method.java");
+	}
+
+	@Override
+	public boolean isTestMethod(PsiElement element, boolean checkAbstract)
 	{
 		return element instanceof PsiMethod && TestNGUtil.hasTest((PsiModifierListOwner) element);
+	}
+
+	@Override
+	public boolean isMyConfigurationType(ConfigurationType type)
+	{
+		return type instanceof TestNGConfigurationType;
 	}
 }

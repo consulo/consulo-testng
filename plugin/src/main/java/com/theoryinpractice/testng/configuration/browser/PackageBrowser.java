@@ -22,21 +22,21 @@ import com.intellij.psi.PsiJavaPackage;
 
 /**
  * @author Hani Suleiman
- *         Date: Jul 21, 2005
- *         Time: 12:56:02 PM
  */
-public class PackageBrowser extends BrowseModuleValueActionListener {
-  public PackageBrowser(Project project) {
-    super(project);
-  }
+public class PackageBrowser extends BrowseModuleValueActionListener
+{
+	public PackageBrowser(Project project)
+	{
+		super(project);
+	}
 
-  @Override
-  protected String showDialog() {
-    PackageChooserDialog chooser = new PackageChooserDialog("Choose Package", getProject());
-    chooser.show();
-    PsiJavaPackage psiPackage = chooser.getSelectedPackage();
-    String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
-    return packageName;
-  }
-
+	@Override
+	protected String showDialog()
+	{
+		PackageChooserDialog chooser = new PackageChooserDialog("Choose Package", getProject());
+		chooser.show();
+		PsiJavaPackage psiPackage = chooser.getSelectedPackage();
+		String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
+		return packageName;
+	}
 }

@@ -15,11 +15,13 @@
  */
 package com.theoryinpractice.testng.referenceContributor;
 
-import com.intellij.openapi.application.PluginPathManager;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
-import org.testng.annotations.*;
 
 /**
  * User: anna
@@ -90,7 +92,7 @@ public class TestNGDataProviderTest extends LightCodeInsightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
-    return PluginPathManager.getPluginHomePathRelative("testng") + "/testData/references";
+    return "/testData/references";
   }
 
 

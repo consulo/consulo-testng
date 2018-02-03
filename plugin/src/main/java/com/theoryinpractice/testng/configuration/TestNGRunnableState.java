@@ -14,373 +14,101 @@
  * limitations under the License.
  */
 
-/*
- * Created by IntelliJ IDEA.
- * User: amrk
- * Date: Jul 2, 2005
- * Time: 12:22:07 AM
- */
 package com.theoryinpractice.testng.configuration;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
-
-import javax.swing.SwingUtilities;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.testng.CommandLineArgs;
 import org.testng.IDEATestNGListener;
 import org.testng.RemoteTestNGStarter;
-import org.testng.annotations.AfterClass;
-import org.testng.remote.RemoteArgs;
-import org.testng.remote.RemoteTestNG;
-import org.testng.remote.strprotocol.SerializedMessageSender;
-import com.intellij.debugger.engine.DebuggerUtils;
-import com.intellij.debugger.settings.DebuggerSettings;
-import com.intellij.execution.DefaultExecutionResult;
+import com.beust.jcommander.JCommander;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.JavaRunConfigurationExtensionManager;
-import com.intellij.execution.JavaTestPatcher;
-import com.intellij.execution.RunConfigurationExtension;
-import com.intellij.execution.configurations.DebuggingRunnerData;
-import com.intellij.execution.configurations.JavaCommandLineState;
-import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.execution.JavaTestFrameworkRunnableState;
 import com.intellij.execution.configurations.ParametersList;
-import com.intellij.execution.configurations.RunnerSettings;
+import com.intellij.execution.process.KillableColoredProcessHandler;
 import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.testframework.Printable;
-import com.intellij.execution.testframework.Printer;
-import com.intellij.execution.testframework.TestConsoleProperties;
-import com.intellij.execution.testframework.TestFrameworkRunningModel;
 import com.intellij.execution.testframework.TestSearchScope;
-import com.intellij.execution.testframework.TestsUIUtil;
-import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
-import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
-import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView;
-import com.intellij.execution.testframework.ui.BaseTestsOutputConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.execution.util.JavaParametersUtil;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.ex.JavaSdkUtil;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Getter;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.PsiMethod;
+import com.intellij.rt.execution.testFrameworks.ForkedDebuggerHelper;
 import com.intellij.util.PathUtil;
 import com.intellij.util.net.NetUtils;
-import com.theoryinpractice.testng.model.IDEARemoteTestRunnerClient;
 import com.theoryinpractice.testng.model.TestData;
-import com.theoryinpractice.testng.model.TestNGRemoteListener;
-import com.theoryinpractice.testng.model.TestProxy;
-import com.theoryinpractice.testng.model.TreeRootNode;
-import com.theoryinpractice.testng.ui.TestNGConsoleView;
-import com.theoryinpractice.testng.ui.TestNGResults;
-import com.theoryinpractice.testng.ui.actions.RerunFailedTestsAction;
-import consulo.java.module.extension.JavaModuleExtension;
-import jetbrains.buildServer.messages.serviceMessages.ServiceMessageTypes;
+import consulo.java.execution.configurations.OwnJavaParameters;
 
-public class TestNGRunnableState extends JavaCommandLineState
+public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGConfiguration>
 {
 	private static final Logger LOG = Logger.getInstance("TestNG Runner");
 	private static final String TESTNG_TEST_FRAMEWORK_NAME = "TestNG";
 	private final TestNGConfiguration config;
-	private final RunnerSettings runnerSettings;
-	protected final IDEARemoteTestRunnerClient client;
 	private int port;
-	private String debugPort;
-	private File myTempFile;
-	private BackgroundableProcessIndicator mySearchForTestIndicator;
-	private ServerSocket myServerSocket;
 
 	public TestNGRunnableState(ExecutionEnvironment environment, TestNGConfiguration config)
 	{
 		super(environment);
-		this.runnerSettings = environment.getRunnerSettings();
 		this.config = config;
 		//TODO need to narrow this down a bit
 		//setModulesToCompile(ModuleManager.getInstance(config.getProject()).getModules());
-		client = new IDEARemoteTestRunnerClient();
-		// Want debugging?
-		if(runnerSettings instanceof DebuggingRunnerData)
-		{
-			DebuggingRunnerData debuggingRunnerData = ((DebuggingRunnerData) runnerSettings);
-			debugPort = debuggingRunnerData.getDebugPort();
-			if(debugPort.length() == 0)
-			{
-				try
-				{
-					debugPort = DebuggerUtils.getInstance().findAvailableDebugAddress(DebuggerSettings.SOCKET_TRANSPORT).address();
-				}
-				catch(ExecutionException e)
-				{
-					LOG.error(e);
-				}
-				debuggingRunnerData.setDebugPort(debugPort);
-			}
-			debuggingRunnerData.setLocal(true);
-		}
 	}
 
 	@NotNull
 	@Override
-	public ExecutionResult execute(@NotNull final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException
+	protected OSProcessHandler startProcess() throws ExecutionException
 	{
-		final boolean smRunner = Registry.is("testng_sm_runner", false);
-		if(smRunner)
-		{
-			return startSMRunner(executor);
-		}
-		OSProcessHandler processHandler = startProcess();
-		final TreeRootNode unboundOutputRoot = new TreeRootNode();
-		final TestNGConsoleView console = new TestNGConsoleView(config, getEnvironment(), unboundOutputRoot, executor);
-		console.initUI();
-		unboundOutputRoot.setPrinter(console.getPrinter());
-		Disposer.register(console, unboundOutputRoot);
-		JavaRunConfigurationExtensionManager.getInstance().attachExtensionsToProcess(config, processHandler, runnerSettings);
-		final SearchingForTestsTask task = createSearchingForTestsTask(myServerSocket, config, myTempFile);
-		processHandler.addProcessListener(new ProcessAdapter()
-		{
-			private boolean myStarted = false;
-
-			@Override
-			public void processTerminated(final ProcessEvent event)
-			{
-				unboundOutputRoot.flush();
-
-				if(mySearchForTestIndicator != null && !mySearchForTestIndicator.isCanceled())
-				{
-					task.finish();
-				}
-
-				final Runnable notificationRunnable = new Runnable()
-				{
-					public void run()
-					{
-						final Project project = config.getProject();
-						if(project.isDisposed())
-						{
-							return;
-						}
-
-						final TestConsoleProperties consoleProperties = console.getProperties();
-						if(consoleProperties == null)
-						{
-							return;
-						}
-						final TestNGResults resultsView = console.getResultsView();
-						TestsUIUtil.notifyByBalloon(project, myStarted, console.getResultsView().getRoot(), consoleProperties,
-								"in " + resultsView.getTime());
-					}
-				};
-				SwingUtilities.invokeLater(notificationRunnable);
-			}
-
-			@Override
-			public void startNotified(final ProcessEvent event)
-			{
-				TestNGRemoteListener listener = new TestNGRemoteListener(console, unboundOutputRoot);
-				if(config.isSaveOutputToFile())
-				{
-					unboundOutputRoot.setOutputFilePath(config.getOutputFilePath());
-				}
-				client.prepareListening(listener, port);
-				myStarted = true;
-				mySearchForTestIndicator = new BackgroundableProcessIndicator(task);
-				ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, mySearchForTestIndicator);
-			}
-
-			@Override
-			public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed)
-			{
-				final TestNGResults resultsView = console.getResultsView();
-				if(resultsView != null)
-				{
-					resultsView.finish(myStarted);
-				}
-			}
-
-			private int myInsertIndex = 0;
-
-			@Override
-			public void onTextAvailable(final ProcessEvent event, final Key outputType)
-			{
-				final TestProxy currentTest = console.getCurrentTest();
-				final String text = event.getText();
-				final ConsoleViewContentType consoleViewType = ConsoleViewContentType.getConsoleViewType(outputType);
-				final Printable printable = new Printable()
-				{
-					public void printOn(final Printer printer)
-					{
-						printer.print(text, consoleViewType);
-					}
-				};
-				if(currentTest != null)
-				{
-					currentTest.addLast(printable);
-				}
-				else
-				{
-					unboundOutputRoot.insert(printable, myInsertIndex);
-				}
-				myInsertIndex++;
-			}
-		});
-		console.attachToProcess(processHandler);
-
-		RerunFailedTestsAction rerunFailedTestsAction = new RerunFailedTestsAction(console, console.getProperties());
-		rerunFailedTestsAction.setModelProvider(new Getter<TestFrameworkRunningModel>()
-		{
-			public TestFrameworkRunningModel get()
-			{
-				return console.getResultsView();
-			}
-		});
-
-		final DefaultExecutionResult result = new DefaultExecutionResult(console, processHandler);
-		result.setRestartActions(rerunFailedTestsAction);
-		return result;
+		final OSProcessHandler processHandler = new KillableColoredProcessHandler(createCommandLine());
+		ProcessTerminatedListener.attach(processHandler);
+		createSearchingForTestsTask().attachTaskToProcess(processHandler);
+		return processHandler;
 	}
 
-	private ExecutionResult startSMRunner(Executor executor) throws ExecutionException
+	@NotNull
+	@Override
+	protected OSProcessHandler createHandler(Executor executor) throws ExecutionException
 	{
-		getJavaParameters().getVMParametersList().add("-Didea.testng.sm_runner");
-		getJavaParameters().getClassPath().add(PathUtil.getJarPathForClass(ServiceMessageTypes.class));
+		appendForkInfo(executor);
+		return startProcess();
+	}
 
-		OSProcessHandler handler = startProcess();
-		TestConsoleProperties testConsoleProperties = new SMTRunnerConsoleProperties((TestNGConfiguration) getEnvironment().getRunProfile(),
-				TESTNG_TEST_FRAMEWORK_NAME, executor);
-
-		testConsoleProperties.setIfUndefined(TestConsoleProperties.HIDE_PASSED_TESTS, false);
-
-		final BaseTestsOutputConsoleView smtConsoleView = SMTestRunnerConnectionUtil.createConsoleWithCustomLocator(TESTNG_TEST_FRAMEWORK_NAME,
-				testConsoleProperties, getEnvironment(), null);
-
-
-		Disposer.register(getEnvironment().getProject(), smtConsoleView);
-		smtConsoleView.attachToProcess(handler);
-		final RerunFailedTestsAction rerunFailedTestsAction = new RerunFailedTestsAction(smtConsoleView, testConsoleProperties);
-		rerunFailedTestsAction.setModelProvider(new Getter<TestFrameworkRunningModel>()
-		{
-			@Override
-			public TestFrameworkRunningModel get()
-			{
-				return ((SMTRunnerConsoleView) smtConsoleView).getResultsViewer();
-			}
-		});
-
-		final DefaultExecutionResult result = new DefaultExecutionResult(smtConsoleView, handler);
-		result.setRestartActions(rerunFailedTestsAction);
-
-		JavaRunConfigurationExtensionManager.getInstance().attachExtensionsToProcess(config, handler, runnerSettings);
-		final SearchingForTestsTask task = createSearchingForTestsTask(myServerSocket, config, myTempFile);
-		handler.addProcessListener(new ProcessAdapter()
-		{
-			@Override
-			public void processTerminated(final ProcessEvent event)
-			{
-
-				if(mySearchForTestIndicator != null && !mySearchForTestIndicator.isCanceled())
-				{
-					task.finish();
-				}
-			}
-
-			@Override
-			public void startNotified(final ProcessEvent event)
-			{
-				mySearchForTestIndicator = new BackgroundableProcessIndicator(task);
-				ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, mySearchForTestIndicator);
-			}
-		});
-
-		return result;
+	@NotNull
+	@Override
+	protected String getFrameworkName()
+	{
+		return TESTNG_TEST_FRAMEWORK_NAME;
 	}
 
 	@Override
-	protected JavaParameters createJavaParameters() throws ExecutionException
+	protected boolean configureByModule(Module module)
 	{
-		final Project project = config.getProject();
-		final JavaParameters javaParameters = new JavaParameters();
-		javaParameters.setupEnvs(config.getPersistantData().getEnvs(), config.getPersistantData().PASS_PARENT_ENVS);
-		javaParameters.setMainClass("org.testng.RemoteTestNGStarter");
-		javaParameters.setWorkingDirectory(config.getWorkingDirectory());
+		return module != null && getConfiguration().getPersistantData().getScope() != TestSearchScope.WHOLE_PROJECT;
+	}
+
+	@Override
+	protected void configureRTClasspath(OwnJavaParameters javaParameters)
+	{
 		javaParameters.getClassPath().add(PathUtil.getJarPathForClass(RemoteTestNGStarter.class));
+		javaParameters.getClassPath().addTail(PathUtil.getJarPathForClass(JCommander.class));
+	}
 
-		//the next few lines are awkward for a reason, using compareTo for some reason causes a JVM class verification error!
-		Module module = config.getConfigurationModule().getModule();
-		if(module == null)
-		{
-			throw new ExecutionException("Module is not selected");
-		}
-
-		JavaModuleExtension moduleExtension = ModuleUtilCore.getExtension(module, JavaModuleExtension.class);
-		if(moduleExtension == null)
-		{
-			throw new ExecutionException("Java extension is not found");
-		}
-
-		LanguageLevel effectiveLanguageLevel = moduleExtension.getLanguageLevel();
-		final boolean is15 = effectiveLanguageLevel != LanguageLevel.JDK_1_4 && effectiveLanguageLevel != LanguageLevel.JDK_1_3;
-
-		LOG.info("Language level is " + effectiveLanguageLevel.toString());
-		LOG.info("is15 is " + is15);
-		final String pathToBundledJar = PathUtil.getJarPathForClass(AfterClass.class);
-
-		// Configure rest of jars
-		JavaParametersUtil.configureConfiguration(javaParameters, config);
-		Sdk jdk = moduleExtension.getSdk();
-		javaParameters.setJdk(jdk);
-
-		for(JavaTestPatcher patcher : JavaTestPatcher.EP_NAME.getExtensions())
-		{
-			patcher.patchJavaParameters(module, javaParameters);
-		}
-		JavaSdkUtil.addRtJar(javaParameters.getClassPath());
-
-		// Append coverage parameters if appropriate
-		for(RunConfigurationExtension ext : Extensions.getExtensions(RunConfigurationExtension.EP_NAME))
-		{
-			ext.updateJavaParameters(config, javaParameters, getRunnerSettings());
-		}
-
-		LOG.info("Test scope is: " + config.getPersistantData().getScope());
-		if(config.getPersistantData().getScope() == TestSearchScope.WHOLE_PROJECT)
-		{
-			LOG.info("Configuring for whole project");
-			JavaParametersUtil.configureProject(config.getProject(), javaParameters, JavaParameters.JDK_AND_CLASSES_AND_TESTS,
-					config.ALTERNATIVE_JRE_PATH_ENABLED ? config.ALTERNATIVE_JRE_PATH : null);
-		}
-		else
-		{
-			LOG.info("Configuring for module:" + config.getConfigurationModule().getModuleName());
-			JavaParametersUtil.configureModule(config.getConfigurationModule(), javaParameters, JavaParameters.JDK_AND_CLASSES_AND_TESTS,
-					config.ALTERNATIVE_JRE_PATH_ENABLED ? config.ALTERNATIVE_JRE_PATH : null);
-		}
-
-		javaParameters.getClassPath().add(pathToBundledJar);
+	@Override
+	protected OwnJavaParameters createJavaParameters() throws ExecutionException
+	{
+		final OwnJavaParameters javaParameters = super.createJavaParameters();
+		javaParameters.setMainClass("org.testng.RemoteTestNGStarter");
 
 		try
 		{
@@ -391,12 +119,9 @@ public class TestNGRunnableState extends JavaCommandLineState
 			throw new ExecutionException("Unable to bind to port " + port, e);
 		}
 
-		final TestData data = config.getPersistantData();
+		final TestData data = getConfiguration().getPersistantData();
 
-		javaParameters.getProgramParametersList().add(supportSerializationProtocol(config) ? RemoteArgs.PORT : CommandLineArgs.PORT,
-				String.valueOf(port));
-
-		if(data.getOutputDirectory() != null && !"".equals(data.getOutputDirectory()))
+		if(data.getOutputDirectory() != null && !data.getOutputDirectory().isEmpty())
 		{
 			javaParameters.getProgramParametersList().add(CommandLineArgs.OUTPUT_DIRECTORY, data.getOutputDirectory());
 		}
@@ -408,124 +133,124 @@ public class TestNGRunnableState extends JavaCommandLineState
 		{
 			buf.append(StringUtil.join(data.TEST_LISTENERS, ";"));
 		}
-
-		for(IDEATestNGListener o : IDEATestNGListener.EP_NAME.getExtensions())
-		{
-			boolean enabled = true;
-			for(RunConfigurationExtension extension : Extensions.getExtensions(RunConfigurationExtension.EP_NAME))
-			{
-				if(extension.isListenerDisabled(config, o, getRunnerSettings()))
-				{
-					enabled = false;
-					break;
-				}
-			}
-			if(enabled)
-			{
-				if(buf.length() > 0)
-				{
-					buf.append(";");
-				}
-				buf.append(o.getClass().getName());
-				javaParameters.getClassPath().add(PathUtil.getJarPathForClass(o.getClass()));
-			}
-		}
+		collectListeners(javaParameters, buf, IDEATestNGListener.EP_NAME.getName(), ";");
 		if(buf.length() > 0)
 		{
 			javaParameters.getProgramParametersList().add(CommandLineArgs.LISTENER, buf.toString());
 		}
 
-   /* // Always include the source paths - just makes things easier :)
-	VirtualFile[] sources;
-    if ((data.getScope() == TestSearchScope.WHOLE_PROJECT && TestType.PACKAGE.getType().equals(data.TEST_OBJECT)) || module == null) {
-      sources = ProjectRootManager.getInstance(project).getContentSourceRoots();
-    }
-    else {
-      sources = ModuleRootManager.getInstance(module).getSourceRoots();
-    }
-
-    if (sources.length > 0) {
-      StringBuffer sb = new StringBuffer();
-
-      for (int i = 0; i < sources.length; i++) {
-        VirtualFile source = sources[i];
-        sb.append(source.getPath());
-        if (i < sources.length - 1) {
-          sb.append(';');
-        }
-
-      }
-
-      javaParameters.getProgramParametersList().add(TestNGCommandLineArgs.SRC_COMMAND_OPT, sb.toString());
-    }*/
-		try
-		{
-			myServerSocket = new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"));
-			javaParameters.getProgramParametersList().add("-socket" + myServerSocket.getLocalPort());
-			myTempFile = FileUtil.createTempFile("idea_testng", ".tmp");
-			myTempFile.deleteOnExit();
-			javaParameters.getProgramParametersList().add("-temp", myTempFile.getAbsolutePath());
-		}
-		catch(IOException e)
-		{
-			LOG.error(e);
-		}
-		// Configure for debugging
-		if(runnerSettings instanceof DebuggingRunnerData)
-		{
-			ParametersList params = javaParameters.getVMParametersList();
-
-			String hostname = "localhost";
-			try
-			{
-				hostname = InetAddress.getLocalHost().getHostName();
-			}
-			catch(UnknownHostException e)
-			{
-			}
-			params.add("-Xdebug");
-			params.add("-Xrunjdwp:transport=dt_socket,address=" + hostname + ':' + debugPort + ",suspend=y,server=n");
-			//            params.add(debugPort);
-		}
-
+		createServerSocket(javaParameters);
+		createTempFiles(javaParameters);
 		return javaParameters;
 	}
 
-	protected SearchingForTestsTask createSearchingForTestsTask(
-			ServerSocket serverSocket, final TestNGConfiguration config, final File tempFile)
+	@Override
+	protected List<String> getNamedParams(String parameters)
 	{
-		return new SearchingForTestsTask(serverSocket, config, tempFile, client);
+		try
+		{
+			Integer.parseInt(parameters);
+			return super.getNamedParams(parameters);
+		}
+		catch(NumberFormatException e)
+		{
+			return Arrays.asList(parameters.split(" "));
+		}
 	}
 
-	public static boolean supportSerializationProtocol(TestNGConfiguration config)
+	@NotNull
+	@Override
+	protected String getForkMode()
 	{
-		final Project project = config.getProject();
-		final GlobalSearchScope scopeToDetermineTestngIn;
-		if(config.getPersistantData().getScope() == TestSearchScope.WHOLE_PROJECT)
-		{
-			scopeToDetermineTestngIn = GlobalSearchScope.allScope(project);
-		}
-		else
-		{
-			scopeToDetermineTestngIn = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(config.getConfigurationModule().getModule());
-		}
+		return "none";
+	}
 
-		final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-		final PsiClass aClass = facade.findClass(SerializedMessageSender.class.getName(), scopeToDetermineTestngIn);
-		if(aClass == null)
+	public SearchingForTestsTask createSearchingForTestsTask()
+	{
+		return new SearchingForTestsTask(myServerSocket, config, myTempFile)
 		{
-			return false;
-		}
-
-		final PsiClass[] starters = facade.findClasses(RemoteTestNG.class.getName(), scopeToDetermineTestngIn);
-		for(PsiClass starter : starters)
-		{
-			if(starter.findFieldByName("m_serPort", false) == null)
+			@Override
+			protected void onFound()
 			{
-				LOG.info("Multiple TestNG versions found");
-				return false;
+				super.onFound();
+				writeClassesPerModule(myClasses);
+			}
+		};
+	}
+
+	protected void writeClassesPerModule(Map<PsiClass, Map<PsiMethod, List<String>>> classes)
+	{
+		if(forkPerModule())
+		{
+			final Map<Module, List<String>> perModule = new TreeMap<>((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), true));
+
+			for(final PsiClass psiClass : classes.keySet())
+			{
+				final Module module = ModuleUtilCore.findModuleForPsiElement(psiClass);
+				if(module != null)
+				{
+					List<String> list = perModule.get(module);
+					if(list == null)
+					{
+						list = new ArrayList<>();
+						perModule.put(module, list);
+					}
+					list.add(psiClass.getQualifiedName());
+				}
+			}
+
+			try
+			{
+				writeClassesPerModule(getConfiguration().getPackage(), getJavaParameters(), perModule);
+			}
+			catch(Exception e)
+			{
+				LOG.error(e);
 			}
 		}
-		return Registry.is("testng.serialized.protocol.enabled") && !TestNGVersionChecker.isVersionIncompatible(project, scopeToDetermineTestngIn);
+	}
+
+	@NotNull
+	protected String getFrameworkId()
+	{
+		return "testng";
+	}
+
+	protected void passTempFile(ParametersList parametersList, String tempFilePath)
+	{
+		parametersList.add("-temp", tempFilePath);
+	}
+
+	@NotNull
+	public TestNGConfiguration getConfiguration()
+	{
+		return config;
+	}
+
+	@Override
+	protected TestSearchScope getScope()
+	{
+		return getConfiguration().getPersistantData().getScope();
+	}
+
+	protected void passForkMode(String forkMode, File tempFile, OwnJavaParameters parameters) throws ExecutionException
+	{
+		final ParametersList parametersList = parameters.getProgramParametersList();
+		final List<String> params = parametersList.getParameters();
+		int paramIdx = params.size() - 1;
+		for(int i = 0; i < params.size(); i++)
+		{
+			String param = params.get(i);
+			if("-temp".equals(param))
+			{
+				paramIdx = i;
+				break;
+			}
+		}
+		parametersList.addAt(paramIdx, "@@@" + tempFile.getAbsolutePath());
+		if(getForkSocket() != null)
+		{
+			parametersList.addAt(paramIdx, ForkedDebuggerHelper.DEBUG_SOCKET + getForkSocket().getLocalPort());
+		}
 	}
 }

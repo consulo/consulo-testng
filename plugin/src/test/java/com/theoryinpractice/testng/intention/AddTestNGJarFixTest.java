@@ -20,23 +20,25 @@
  */
 package com.theoryinpractice.testng.intention;
 
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.application.PluginPathManager;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.fixtures.*;
-import com.intellij.util.ui.UIUtil;
+import java.util.List;
+
 import org.jetbrains.annotations.NonNls;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.util.List;
+import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.util.Comparing;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.ui.UIUtil;
 
 @Test
 public class AddTestNGJarFixTest {
@@ -53,7 +55,7 @@ public class AddTestNGJarFixTest {
           final IdeaTestFixtureFactory fixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
           final TestFixtureBuilder<IdeaProjectTestFixture> testFixtureBuilder = fixtureFactory.createFixtureBuilder();
           myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(testFixtureBuilder.getFixture());
-          final String dataPath = PluginPathManager.getPluginHomePath("testng") + "/testData";
+          final String dataPath = "/testData";
           myFixture.setTestDataPath(dataPath);
           final JavaModuleFixtureBuilder builder = testFixtureBuilder.addModule(JavaModuleFixtureBuilder.class);
 
@@ -62,8 +64,8 @@ public class AddTestNGJarFixTest {
           builder.setMockJdkLevel(JavaModuleFixtureBuilder.MockJdkLevel.jdk15);
           myFixture.setUp();
           final JavaPsiFacade facade = JavaPsiFacade.getInstance(myFixture.getProject());
-          myLanguageLevel = LanguageLevelProjectExtension.getInstance(facade.getProject()).getLanguageLevel();
-          LanguageLevelProjectExtension.getInstance(facade.getProject()).setLanguageLevel(LanguageLevel.JDK_1_5);
+          //myLanguageLevel = LanguageLevelProjectExtension.getInstance(facade.getProject()).getLanguageLevel();
+          //LanguageLevelProjectExtension.getInstance(facade.getProject()).setLanguageLevel(LanguageLevel.JDK_1_5);
         }
         catch (Exception e) {
           throw new RuntimeException(e);
@@ -79,7 +81,7 @@ public class AddTestNGJarFixTest {
       @Override
       public void run() {
         try {
-          LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(myLanguageLevel);
+          //LanguageLevelProjectExtension.getInstance(myFixture.getProject()).setLanguageLevel(myLanguageLevel);
           myFixture.tearDown();
           myFixture = null;
         }

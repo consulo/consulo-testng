@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2009 JetBrains s.r.o.
+ * Copyright 2000-2015 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.theoryinpractice.testng.model;
+package org.testng;
 
-import com.intellij.execution.testframework.ui.BaseTestProxyNodeDescriptor;
-import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.project.Project;
+import com.beust.jcommander.JCommander;
+import org.testng.remote.RemoteArgs;
 
-/**
- * @author Hani Suleiman Date: Jul 28, 2005 Time: 10:44:26 PM
- */
-public class TestNodeDescriptor extends BaseTestProxyNodeDescriptor<TestProxy> {
-  public TestNodeDescriptor(Project project, TestProxy node, NodeDescriptor<TestProxy> parent) {
-    super(project, node, parent);
+import java.util.Arrays;
+
+public class TestNGForkedStarter  {
+  public static void main(String[] args) throws Exception {
+    final IDEARemoteTestNG testNG = new IDEARemoteTestNG(null);
+    CommandLineArgs cla = new CommandLineArgs();
+    RemoteArgs ra = new RemoteArgs();
+    new JCommander(Arrays.asList(cla, ra), args);
+    testNG.configure(cla);
+    testNG.run();
+    System.exit(0);
   }
 }

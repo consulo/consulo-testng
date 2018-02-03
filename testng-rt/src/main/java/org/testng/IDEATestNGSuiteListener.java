@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2009 JetBrains s.r.o.
+ * Copyright 2000-2016 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.testng;
 
-/*
- * User: anna
- * Date: 30-Jul-2007
- */
-package com.theoryinpractice.testng;
+public class IDEATestNGSuiteListener implements ISuiteListener {
+  private final IDEATestNGRemoteListener myListener;
 
-import com.intellij.javaee.ResourceRegistrar;
-import com.intellij.javaee.StandardResourceProvider;
+  public IDEATestNGSuiteListener(IDEATestNGRemoteListener listener) {
+    myListener = listener;
+  }
 
-public class TestNGPlugin implements StandardResourceProvider
-{
-	@Override
-	public void registerResources(ResourceRegistrar registrar)
-	{
-		registrar.addStdResource("http://testng.org/testng-1.0.dtd", "/resources/standardSchemas/testng-1.0.dtd", getClass());
-	}
+  public void onStart(ISuite suite) {
+    myListener.onStart(suite);
+  }
+
+  public void onFinish(ISuite suite) {
+    myListener.onFinish(suite);
+  }
 }

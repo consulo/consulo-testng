@@ -20,11 +20,17 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import java.io.File;
+
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -36,16 +42,14 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.RefactoringFactory;
 import com.intellij.refactoring.RenameRefactoring;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TempDirTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import com.theoryinpractice.testng.model.TestType;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import java.io.File;
 
 public class ConfigurationsTest {
   private TempDirTestFixture myFixture;
@@ -60,7 +64,7 @@ public class ConfigurationsTest {
     myFixture = fixtureFactory.createTempDirTestFixture();
     myFixture.setUp();
 
-    FileUtil.copyDir(new File(PluginPathManager.getPluginHomePath("testng") + "/testData/runConfiguration/module1"),
+    FileUtil.copyDir(new File("/testData/runConfiguration/module1"),
                      new File(myFixture.getTempDirPath()), false);
 
     myProjectFixture = testFixtureBuilder.getFixture();
@@ -187,7 +191,7 @@ public class ConfigurationsTest {
     final Project project = myProjectFixture.getProject();
     final PsiClass psiClass = findTestClass(project);
     final TestNGInClassConfigurationProducer producer = new TestNGInClassConfigurationProducer();
-    final RunnerAndConfigurationSettings config = producer.createConfigurationByElement(new PsiLocation<PsiClass>(project, psiClass), null);
+    final RunnerAndConfigurationSettings config = producer.createConfigurationFromContext(new ConfigurationContext(psiClass)).getConfigurationSettings();
     assert config != null;
     final RunConfiguration runConfiguration = config.getConfiguration();
     Assert.assertTrue(runConfiguration instanceof TestNGConfiguration);
