@@ -15,7 +15,7 @@
  */
 package org.testng;
 
-import com.intellij.execution.TestDiscoveryListener;
+import com.intellij.rt.execution.TestDiscoveryListener;
 import com.intellij.rt.execution.junit.ComparisonFailureData;
 
 public class TestNGTestDiscoveryListener extends TestDiscoveryListener implements IDEATestNGListener, ISuiteListener
