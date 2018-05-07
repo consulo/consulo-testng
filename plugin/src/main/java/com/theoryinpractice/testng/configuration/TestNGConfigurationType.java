@@ -4,8 +4,6 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import javax.swing.Icon;
-
 import org.jetbrains.annotations.NotNull;
 import com.intellij.execution.Location;
 import com.intellij.execution.RunManager;
@@ -23,6 +21,7 @@ import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import consulo.java.module.extension.JavaModuleExtension;
 import consulo.module.extension.ModuleExtensionHelper;
+import consulo.ui.image.Image;
 import icons.TestngIcons;
 
 public class TestNGConfigurationType implements ConfigurationType
@@ -103,7 +102,7 @@ public class TestNGConfigurationType implements ConfigurationType
 	}
 
 	@Override
-	public Icon getIcon()
+	public Image getIcon()
 	{
 		return TestngIcons.TestNG;
 	}

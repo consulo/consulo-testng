@@ -34,6 +34,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationType;
 import com.theoryinpractice.testng.intention.TestNGExternalLibraryResolver;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.awt.TargetAWT;
 import icons.TestngIcons;
 
 public class TestNGFramework extends JavaTestFramework
@@ -52,7 +53,7 @@ public class TestNGFramework extends JavaTestFramework
 	@Override
 	public Icon getIcon()
 	{
-		return TestngIcons.TestNG;
+		return TargetAWT.to(TestngIcons.TestNG);
 	}
 
 	@Override
