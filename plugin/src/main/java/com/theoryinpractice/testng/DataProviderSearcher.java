@@ -31,7 +31,7 @@ public class DataProviderSearcher extends QueryExecutorBase<PsiReference, Method
   }
 
   @Override
-  public void processQuery(@NotNull MethodReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer) {
+  public void processQuery(@NotNull MethodReferencesSearch.SearchParameters queryParameters, @NotNull Processor<? super PsiReference> consumer) {
     final PsiMethod method = queryParameters.getMethod();
 
     final PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, DataProvider.class.getName());
