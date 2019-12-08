@@ -16,29 +16,9 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import org.testng.TestNGXmlSuiteHelper;
-import org.testng.xml.LaunchSuite;
-import org.testng.xml.Parser;
-import org.testng.xml.SuiteGenerator;
-import org.testng.xml.XmlSuite;
 import com.intellij.execution.CantRunException;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.testframework.SearchForTestsTask;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -51,6 +31,16 @@ import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import com.theoryinpractice.testng.model.TestType;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.container.boot.ContainerPathManager;
+import org.testng.TestNGXmlSuiteHelper;
+import org.testng.xml.LaunchSuite;
+import org.testng.xml.Parser;
+import org.testng.xml.SuiteGenerator;
+import org.testng.xml.XmlSuite;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.util.*;
 
 public class SearchingForTestsTask extends SearchForTestsTask
 {
@@ -181,11 +171,11 @@ public class SearchingForTestsTask extends SearchForTestsTask
 				methodNames.put(entry.getKey(), entry.getValue().keySet());
 			}
 			LaunchSuite suite = SuiteGenerator.createSuite(myProject.getName(), null, methodNames, groupNames, testParams, "jdk", logLevel);
-			xmlFile = suite.save(new File(PathManager.getSystemPath()));
+			xmlFile = suite.save(new File(ContainerPathManager.get().getSystemPath()));
 		}
 		else
 		{
-			xmlFile = TestNGXmlSuiteHelper.writeSuite(map, testParams, myProject.getName(), PathManager.getSystemPath(), new TestNGXmlSuiteHelper.Logger()
+			xmlFile = TestNGXmlSuiteHelper.writeSuite(map, testParams, myProject.getName(), ContainerPathManager.get().getSystemPath(), new TestNGXmlSuiteHelper.Logger()
 			{
 				@Override
 				public void log(Throwable e)
@@ -238,7 +228,7 @@ public class SearchingForTestsTask extends SearchForTestsTask
 				params.putAll(buildTestParams);
 
 				final String fileId = FileUtil.sanitizeFileName(myProject.getName() + '_' + suite.getName() + '_' + Integer.toHexString(suite.getName().hashCode()) + ".xml");
-				final File suiteFile = new File(PathManager.getSystemPath(), fileId);
+				final File suiteFile = new File(ContainerPathManager.get().getSystemPath(), fileId);
 				FileWriter fileWriter = new FileWriter(suiteFile);
 				try
 				{
