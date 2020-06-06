@@ -29,7 +29,7 @@ import com.intellij.testFramework.InspectionFixtureTestCase;
 import com.intellij.util.ui.UIUtil;
 import com.theoryinpractice.testng.util.TestNGUtil;
 
-public class UndeclaredTestsInspectionTest extends InspectionFixtureTestCase
+public abstract class UndeclaredTestsInspectionTest extends InspectionFixtureTestCase
 {
 
   @Override

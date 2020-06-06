@@ -23,7 +23,7 @@ package com.theoryinpractice.testng.inspection;
 import com.intellij.codeInspection.LocalInspectionTool;
 import org.testng.annotations.Test;
 
-public class ConvertOldAnnotationInspectionTest extends BaseTestNGInspectionsTest{
+public abstract class ConvertOldAnnotationInspectionTest extends BaseTestNGInspectionsTest{
   protected String getSourceRoot() {
     return "configuration";
   }

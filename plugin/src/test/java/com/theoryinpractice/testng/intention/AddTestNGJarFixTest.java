@@ -20,28 +20,24 @@
  */
 package com.theoryinpractice.testng.intention;
 
-import java.util.List;
-
+import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.util.Comparing;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
+import com.intellij.testFramework.fixtures.*;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NonNls;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.ui.UIUtil;
+
+import java.util.List;
 
 @Test
-public class AddTestNGJarFixTest {
+public abstract class AddTestNGJarFixTest {
   protected CodeInsightTestFixture myFixture;
 
   private LanguageLevel myLanguageLevel;

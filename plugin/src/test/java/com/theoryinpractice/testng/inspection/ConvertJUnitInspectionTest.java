@@ -23,7 +23,7 @@ package com.theoryinpractice.testng.inspection;
 import com.intellij.codeInspection.LocalInspectionTool;
 import org.testng.annotations.Test;
 
-public class ConvertJUnitInspectionTest extends BaseTestNGInspectionsTest{
+public abstract class ConvertJUnitInspectionTest extends BaseTestNGInspectionsTest{
   protected String getSourceRoot() {
     return "junit";
   }

@@ -27,7 +27,7 @@ import com.intellij.util.ui.UIUtil;
  * Date: Sep 3, 2010
  */
 @Test
-public class TestNGSuiteTest extends LightCodeInsightFixtureTestCase {
+public abstract class TestNGSuiteTest extends LightCodeInsightFixtureTestCase {
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {

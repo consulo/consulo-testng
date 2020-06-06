@@ -24,7 +24,7 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-public class ConvertJavadocInspectionTest extends BaseTestNGInspectionsTest{
+public abstract class ConvertJavadocInspectionTest extends BaseTestNGInspectionsTest{
   protected String getSourceRoot() {
     return "javadoc2Annotation";
   }
