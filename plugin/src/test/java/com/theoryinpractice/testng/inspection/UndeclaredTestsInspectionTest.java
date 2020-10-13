@@ -20,14 +20,13 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import org.jetbrains.annotations.NonNls;
+import com.intellij.testFramework.InspectionFixtureTestCase;
+import com.intellij.util.ui.UIUtil;
+import com.theoryinpractice.testng.util.TestNGUtil;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import com.intellij.testFramework.InspectionFixtureTestCase;
-import com.intellij.util.ui.UIUtil;
-import com.theoryinpractice.testng.util.TestNGUtil;
 
 public abstract class UndeclaredTestsInspectionTest extends InspectionFixtureTestCase
 {

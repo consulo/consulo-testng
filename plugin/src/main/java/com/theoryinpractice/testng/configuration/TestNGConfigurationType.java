@@ -4,15 +4,10 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import org.jetbrains.annotations.NotNull;
 import com.intellij.execution.Location;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.ConfigurationTypeUtil;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
-import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -21,8 +16,9 @@ import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import consulo.java.module.extension.JavaModuleExtension;
 import consulo.module.extension.ModuleExtensionHelper;
+import consulo.testng.icon.TestNGIconGroup;
 import consulo.ui.image.Image;
-import icons.TestngIcons;
+import org.jetbrains.annotations.NotNull;
 
 public class TestNGConfigurationType implements ConfigurationType
 {
@@ -104,7 +100,7 @@ public class TestNGConfigurationType implements ConfigurationType
 	@Override
 	public Image getIcon()
 	{
-		return TestngIcons.TestNG;
+		return TestNGIconGroup.testNG();
 	}
 
 	@Override
