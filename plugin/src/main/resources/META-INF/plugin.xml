@@ -1,4 +1,4 @@
-<idea-plugin>
+<consulo-plugin>
 	<id>consulo.testng</id>
 	<name>TestNG-J</name>
 	<description>TestNG Integration</description>
@@ -6,6 +6,10 @@
 	<vendor>Theory In Practice</vendor>
 	<category>Test Frameworks</category>
 	<depends>consulo.java</depends>
+
+	<tags>
+		<tag>test.framework</tag>
+	</tags>
 
 	<extensionPoints>
 		<extensionPoint name="listener" interface="org.testng.IDEATestNGListener"/>
@@ -80,4 +84,4 @@
 		<forcedElementWeigher implementation="com.theoryinpractice.testng.TestNGForcedElementWeigher"/>
 		<gotoRelatedProvider implementation="com.theoryinpractice.testng.TestNGRelatedFilesProvider"/>
 	</extensions>
-</idea-plugin>
+</consulo-plugin>
