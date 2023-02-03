@@ -15,21 +15,22 @@
  */
 package com.theoryinpractice.testng.configuration.testDiscovery;
 
-import java.util.Set;
-
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.testDiscovery.TestDiscoverySearchHelper;
-import com.intellij.execution.testframework.TestSearchScope;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Pair;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.java.execution.impl.testDiscovery.TestDiscoverySearchHelper;
 import com.theoryinpractice.testng.configuration.SearchingForTestsTask;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGRunnableState;
 import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestPattern;
 import com.theoryinpractice.testng.model.TestType;
+import consulo.execution.CantRunException;
+import consulo.execution.runner.ExecutionEnvironment;
+import consulo.execution.test.TestSearchScope;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.module.Module;
+import consulo.project.Project;
+import consulo.util.lang.Pair;
+
+import java.util.Set;
 
 public class TestNGTestDiscoveryRunnableState extends TestNGRunnableState
 {
@@ -62,9 +63,9 @@ public class TestNGTestDiscoveryRunnableState extends TestNGRunnableState
 				myClasses.clear();
 				final TestData data = getConfiguration().getPersistantData();
 				final Pair<String, String> position = data.TEST_OBJECT.equals(TestType.SOURCE.getType()) ? Pair.create(data.getMainClassName(), data.getMethodName()) : null;
-				final Set<String> patterns = TestDiscoverySearchHelper.search(getProject(), position, data.getChangeList(), getConfiguration().getFrameworkPrefix());
+				final Set<String> patterns = TestDiscoverySearchHelper.search((Project) getProject(), position, data.getChangeList(), getConfiguration().getFrameworkPrefix());
 				final Module module = getConfiguration().getConfigurationModule().getModule();
-				final GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.projectScope(getProject());
+				final GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.projectScope((Project) getProject());
 				TestNGTestPattern.fillTestObjects(myClasses, patterns, TestSearchScope.MODULE_WITH_DEPENDENCIES, getConfiguration(), searchScope);
 			}
 

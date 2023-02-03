@@ -3,25 +3,19 @@
  */
 package com.theoryinpractice.testng.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.intellij.java.execution.JavaExecutionUtil;
+import com.intellij.java.execution.impl.junit.JUnitUtil;
+import com.intellij.java.execution.impl.junit2.info.MethodLocation;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiJavaPackage;
+import com.intellij.java.language.psi.PsiMethod;
+import consulo.execution.action.Location;
+import consulo.execution.configuration.ExternalizablePath;
+import consulo.execution.test.TestSearchScope;
+import consulo.module.Module;
+import consulo.util.lang.Comparing;
 
-import com.intellij.execution.ExternalizablePath;
-import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.Location;
-import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.execution.junit2.info.MethodLocation;
-import com.intellij.execution.testframework.TestSearchScope;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiJavaPackage;
-import com.intellij.psi.PsiMethod;
+import java.util.*;
 
 /**
  * @author Hani Suleiman

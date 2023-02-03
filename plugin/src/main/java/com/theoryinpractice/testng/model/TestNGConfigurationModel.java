@@ -15,22 +15,21 @@
  */
 package com.theoryinpractice.testng.model;
 
-import java.util.LinkedHashSet;
+import com.intellij.java.execution.JavaExecutionUtil;
+import com.intellij.java.execution.impl.junit.JUnitUtil;
+import com.intellij.java.language.psi.PsiClass;
+import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
+import consulo.language.editor.WriteCommandAction;
+import consulo.logging.Logger;
+import consulo.module.Module;
+import consulo.project.Project;
+import consulo.util.lang.StringUtil;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
-
-import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiClass;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
-import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
+import java.util.LinkedHashSet;
 
 /**
  * @author Hani Suleiman
@@ -213,7 +212,7 @@ public class TestNGConfigurationModel
 				throw new RuntimeException(e);
 			}
 		}
-		return ((com.intellij.openapi.editor.Document) document).getText();
+		return ((consulo.document.Document) document).getText();
 	}
 
 	public void reset(TestNGConfiguration config)
@@ -258,8 +257,10 @@ public class TestNGConfigurationModel
 		}
 		else
 		{
-			WriteCommandAction.runWriteCommandAction(project, () -> ((com.intellij.openapi.editor.Document) document).replaceString(0, ((com.intellij.openapi.editor.Document) document).getTextLength
-					(), value));
+			WriteCommandAction.runWriteCommandAction(project, () ->
+			{
+				((consulo.document.Document) document).replaceString(0, ((consulo.document.Document) document).getTextLength(), value);
+			});
 		}
 	}
 

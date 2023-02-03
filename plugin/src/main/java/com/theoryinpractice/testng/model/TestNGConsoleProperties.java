@@ -15,23 +15,23 @@
  */
 package com.theoryinpractice.testng.model;
 
-import javax.swing.JComponent;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.intellij.execution.Executor;
-import com.intellij.execution.testframework.JavaAwareTestConsoleProperties;
-import com.intellij.execution.testframework.JavaTestLocator;
-import com.intellij.execution.testframework.SourceScope;
-import com.intellij.execution.testframework.TestConsoleProperties;
-import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction;
-import com.intellij.execution.testframework.sm.runner.SMTestLocator;
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.actionSystem.AnSeparator;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.java.execution.impl.testframework.JavaAwareTestConsoleProperties;
+import com.intellij.java.execution.impl.testframework.JavaTestLocator;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.ui.actions.RerunFailedTestsAction;
+import consulo.execution.executor.Executor;
+import consulo.execution.test.SourceScope;
+import consulo.execution.test.TestConsoleProperties;
+import consulo.execution.test.action.AbstractRerunFailedTestsAction;
+import consulo.execution.test.sm.runner.SMTestLocator;
+import consulo.execution.ui.console.ConsoleView;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.ui.ex.action.AnSeparator;
+import consulo.ui.ex.action.DefaultActionGroup;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 public class TestNGConsoleProperties extends JavaAwareTestConsoleProperties<TestNGConfiguration>
 {

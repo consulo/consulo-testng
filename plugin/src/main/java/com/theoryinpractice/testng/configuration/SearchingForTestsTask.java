@@ -16,23 +16,23 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.testframework.SearchForTestsTask;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.CharsetToolkit;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.util.ClassUtil;
+import com.intellij.java.execution.impl.testframework.SearchForTestsTask;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.intellij.java.language.psi.util.ClassUtil;
 import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import com.theoryinpractice.testng.model.TestType;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import com.theoryinpractice.testng.util.TestNGXmlSuiteHelper;
+import consulo.application.ReadAction;
 import consulo.container.boot.ContainerPathManager;
-import org.testng.TestNGXmlSuiteHelper;
+import consulo.execution.CantRunException;
+import consulo.logging.Logger;
+import consulo.process.ExecutionException;
+import consulo.project.Project;
+import consulo.util.io.CharsetToolkit;
+import consulo.util.io.FileUtil;
 import org.testng.xml.LaunchSuite;
 import org.testng.xml.Parser;
 import org.testng.xml.SuiteGenerator;

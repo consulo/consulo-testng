@@ -15,13 +15,13 @@
  */
 package com.theoryinpractice.testng.model;
 
-import com.intellij.execution.configurations.ConfigurationUtil;
-import com.intellij.ide.util.ClassFilter;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.java.execution.configurations.ConfigurationUtil;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.util.ClassFilter;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.application.ReadAction;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.project.Project;
 
 /**
  * @author Mark Derricutt
@@ -42,7 +42,7 @@ public class TestListenerFilter implements ClassFilter.ClassFilterWithScope
 	{
 		return ReadAction.compute(() ->
 		{
-			if(!ConfigurationUtil.PUBLIC_INSTANTIATABLE_CLASS.value(psiClass))
+			if(!ConfigurationUtil.PUBLIC_INSTANTIATABLE_CLASS.test(psiClass))
 			{
 				return false;
 			}

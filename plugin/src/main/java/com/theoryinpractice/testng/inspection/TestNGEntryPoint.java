@@ -20,61 +20,78 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import com.intellij.codeInspection.reference.EntryPoint;
-import com.intellij.codeInspection.reference.RefElement;
-import com.intellij.openapi.util.DefaultJDOMExternalizer;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.java.analysis.codeInspection.ex.EntryPoint;
+import com.intellij.java.language.psi.PsiModifierListOwner;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.language.editor.inspection.reference.RefElement;
+import consulo.language.psi.PsiElement;
+import consulo.util.xml.serializer.DefaultJDOMExternalizer;
+import consulo.util.xml.serializer.InvalidDataException;
+import consulo.util.xml.serializer.WriteExternalException;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TestNGEntryPoint extends EntryPoint {
-   public boolean ADD_TESTNG_TO_ENTRIES = true;
+@ExtensionImpl
+public class TestNGEntryPoint extends EntryPoint
+{
+	public boolean ADD_TESTNG_TO_ENTRIES = true;
 
-  public boolean isSelected() {
-    return ADD_TESTNG_TO_ENTRIES;
-  }
+	public boolean isSelected()
+	{
+		return ADD_TESTNG_TO_ENTRIES;
+	}
 
-  public void setSelected(boolean selected) {
-    ADD_TESTNG_TO_ENTRIES = selected;
-  }
+	public void setSelected(boolean selected)
+	{
+		ADD_TESTNG_TO_ENTRIES = selected;
+	}
 
-  @NotNull
-  public String getDisplayName() {
-    return "Automatically add all TestNG classes/methods/etc. to entry points";
-  }
+	@NotNull
+	public String getDisplayName()
+	{
+		return "Automatically add all TestNG classes/methods/etc. to entry points";
+	}
 
-  public boolean isEntryPoint(RefElement refElement, PsiElement psiElement) {
-    return isEntryPoint(psiElement);
-  }
+	public boolean isEntryPoint(RefElement refElement, PsiElement psiElement)
+	{
+		return isEntryPoint(psiElement);
+	}
 
-  @Override
-  public boolean isEntryPoint(PsiElement psiElement) {
-    if (ADD_TESTNG_TO_ENTRIES) {
-      if (psiElement instanceof PsiModifierListOwner) {
-        if (TestNGUtil.hasTest((PsiModifierListOwner)psiElement, false, false, TestNGUtil.hasDocTagsSupport)) return true;
-        return TestNGUtil.hasConfig((PsiModifierListOwner)psiElement);
-      }
-    }
-    return false;
-  }
+	@Override
+	public boolean isEntryPoint(PsiElement psiElement)
+	{
+		if(ADD_TESTNG_TO_ENTRIES)
+		{
+			if(psiElement instanceof PsiModifierListOwner)
+			{
+				if(TestNGUtil.hasTest((PsiModifierListOwner) psiElement, false, false, TestNGUtil.hasDocTagsSupport))
+				{
+					return true;
+				}
+				return TestNGUtil.hasConfig((PsiModifierListOwner) psiElement);
+			}
+		}
+		return false;
+	}
 
-  public void readExternal(Element element) throws InvalidDataException {
-    DefaultJDOMExternalizer.readExternal(this, element);
-  }
+	public void readExternal(Element element) throws InvalidDataException
+	{
+		DefaultJDOMExternalizer.readExternal(this, element);
+	}
 
-  public void writeExternal(Element element) throws WriteExternalException {
-    if (!ADD_TESTNG_TO_ENTRIES) {
-      DefaultJDOMExternalizer.writeExternal(this, element);
-    }
-  }
+	public void writeExternal(Element element) throws WriteExternalException
+	{
+		if(!ADD_TESTNG_TO_ENTRIES)
+		{
+			DefaultJDOMExternalizer.writeExternal(this, element);
+		}
+	}
 
-  @Nullable
-  public String[] getIgnoreAnnotations() {
-    return TestNGUtil.CONFIG_ANNOTATIONS_FQN;
-  }
+	@Nullable
+	public String[] getIgnoreAnnotations()
+	{
+		return TestNGUtil.CONFIG_ANNOTATIONS_FQN;
+	}
 }

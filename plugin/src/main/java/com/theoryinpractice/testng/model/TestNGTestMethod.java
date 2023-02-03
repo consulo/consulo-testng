@@ -15,25 +15,21 @@
  */
 package com.theoryinpractice.testng.model;
 
+import com.intellij.java.execution.JavaExecutionUtil;
+import com.intellij.java.language.psi.*;
+import com.intellij.java.language.psi.util.ClassUtil;
+import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import consulo.application.ReadAction;
+import consulo.execution.CantRunException;
+import consulo.execution.RuntimeConfigurationException;
+import consulo.execution.test.SourceScope;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiManager;
+import consulo.language.psi.util.PsiTreeUtil;
+import consulo.util.lang.Comparing;
+
 import java.util.List;
 import java.util.Map;
-
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.testframework.SourceScope;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.util.ClassUtil;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 
 public class TestNGTestMethod extends TestNGTestObject
 {

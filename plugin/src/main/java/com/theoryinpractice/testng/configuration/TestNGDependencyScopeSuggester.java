@@ -15,18 +15,22 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import com.intellij.java.impl.openapi.roots.libraries.LibrariesHelper;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.content.base.BinariesOrderRootType;
+import consulo.content.library.Library;
+import consulo.module.content.layer.orderEntry.DependencyScope;
+import consulo.module.content.layer.orderEntry.LibraryDependencyScopeSuggester;
+import consulo.virtualFileSystem.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.LibraryDependencyScopeSuggester;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import consulo.roots.types.BinariesOrderRootType;
+
+import java.util.Arrays;
 
 /**
  * @author nik
  */
+@ExtensionImpl
 public class TestNGDependencyScopeSuggester extends LibraryDependencyScopeSuggester
 {
 	@Nullable
@@ -34,7 +38,7 @@ public class TestNGDependencyScopeSuggester extends LibraryDependencyScopeSugges
 	public DependencyScope getDefaultDependencyScope(@NotNull Library library)
 	{
 		VirtualFile[] files = library.getFiles(BinariesOrderRootType.getInstance());
-		if(files.length == 1 && LibraryUtil.isClassAvailableInLibrary(files, "org.testng.annotations.Test"))
+		if(files.length == 1 && LibrariesHelper.getInstance().isClassAvailable(Arrays.stream(files).map(VirtualFile::getUrl).toArray(String[]::new), "org.testng.annotations.Test"))
 		{
 			return DependencyScope.TEST;
 		}

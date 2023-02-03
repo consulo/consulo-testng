@@ -20,20 +20,25 @@
  */
 package com.theoryinpractice.testng.intention;
 
-import com.intellij.codeInsight.generation.OverrideImplementsAnnotationsHandler;
-import com.intellij.openapi.project.Project;
-import com.intellij.util.ArrayUtil;
+import com.intellij.java.impl.codeInsight.generation.OverrideImplementsAnnotationsHandler;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.project.Project;
+import consulo.util.collection.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class OverrideImplementsTestNGAnnotationsHandler implements OverrideImplementsAnnotationsHandler{
-  public String[] getAnnotations(Project project) {
-    return TestNGUtil.CONFIG_ANNOTATIONS_FQN;
-  }
+@ExtensionImpl
+public class OverrideImplementsTestNGAnnotationsHandler implements OverrideImplementsAnnotationsHandler
+{
+	public String[] getAnnotations(Project project)
+	{
+		return TestNGUtil.CONFIG_ANNOTATIONS_FQN;
+	}
 
 
-  @NotNull
-  public String[] annotationsToRemove(Project project, @NotNull final String fqName) {
-    return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
+	@NotNull
+	public String[] annotationsToRemove(Project project, @NotNull final String fqName)
+	{
+		return ArrayUtil.EMPTY_STRING_ARRAY;
+	}
 }

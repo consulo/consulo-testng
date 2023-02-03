@@ -16,18 +16,18 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import com.intellij.execution.actions.ConfigurationContext;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.testframework.AbstractPatternBasedConfigurationProducer;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiElement;
+import com.intellij.java.execution.impl.testframework.AbstractPatternBasedConfigurationProducer;
 import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestType;
+import consulo.execution.action.ConfigurationContext;
+import consulo.execution.configuration.ConfigurationType;
+import consulo.language.psi.PsiElement;
+import consulo.module.Module;
+import consulo.util.lang.Comparing;
+import consulo.util.lang.ref.Ref;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public abstract class AbstractTestNGPatternConfigurationProducer extends AbstractPatternBasedConfigurationProducer<TestNGConfiguration>
 {

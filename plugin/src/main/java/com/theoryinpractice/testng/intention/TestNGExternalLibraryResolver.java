@@ -15,27 +15,28 @@
  */
 package com.theoryinpractice.testng.intention;
 
+import com.beust.jcommander.JCommander;
+import com.intellij.java.impl.codeInsight.daemon.quickFix.ExternalLibraryResolver;
+import com.intellij.java.language.projectRoots.roots.ExternalLibraryDescriptor;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.module.Module;
+import consulo.util.io.ClassPathUtil;
+import consulo.util.lang.ThreeState;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.testng.annotations.Test;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.testng.annotations.Test;
-import com.beust.jcommander.JCommander;
-import com.intellij.codeInsight.daemon.quickFix.ExternalLibraryResolver;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ExternalLibraryDescriptor;
-import com.intellij.util.PathUtil;
-import com.intellij.util.ThreeState;
-import com.intellij.util.containers.ContainerUtil;
-
 /**
  * @author nik
  */
+@ExtensionImpl
 public class TestNGExternalLibraryResolver extends ExternalLibraryResolver
 {
-	private static final Set<String> TEST_NG_ANNOTATIONS = ContainerUtil.set("Test", "BeforeClass", "BeforeGroups", "BeforeMethod", "BeforeSuite", "BeforeTest", "AfterClass", "AfterGroups",
+	private static final Set<String> TEST_NG_ANNOTATIONS = Set.of("Test", "BeforeClass", "BeforeGroups", "BeforeMethod", "BeforeSuite", "BeforeTest", "AfterClass", "AfterGroups",
 			"AfterMethod", "AfterSuite", "AfterTest", "Configuration");
 	public static final ExternalLibraryDescriptor TESTNG_DESCRIPTOR = new ExternalLibraryDescriptor("org.testng", "testng")
 	{
@@ -43,7 +44,7 @@ public class TestNGExternalLibraryResolver extends ExternalLibraryResolver
 		@Override
 		public List<String> getLibraryClassesRoots()
 		{
-			return Arrays.asList(PathUtil.getJarPathForClass(Test.class), PathUtil.getJarPathForClass(JCommander.class));
+			return Arrays.asList(ClassPathUtil.getJarPathForClass(Test.class), ClassPathUtil.getJarPathForClass(JCommander.class));
 		}
 	};
 

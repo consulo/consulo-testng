@@ -16,86 +16,59 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Map;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.Document;
-import javax.swing.text.PlainDocument;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.intellij.application.options.ModuleDescriptionsComboBox;
-import com.intellij.execution.ExecutionBundle;
-import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.MethodBrowser;
-import com.intellij.execution.ShortenCommandLine;
-import com.intellij.execution.configuration.BrowseModuleValueActionListener;
-import com.intellij.execution.testDiscovery.TestDiscoveryExtension;
-import com.intellij.execution.testframework.TestSearchScope;
-import com.intellij.execution.ui.CommonJavaParametersPanel;
-import com.intellij.execution.ui.ConfigurationModuleSelector;
-import com.intellij.execution.ui.DefaultJreSelector;
-import com.intellij.execution.ui.JrePathEditor;
-import com.intellij.execution.ui.ShortenCommandLineModeCombo;
-import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.fileTypes.PlainTextLanguage;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithBrowseButton;
-import com.intellij.openapi.ui.LabeledComponent;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaCodeFragment;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.ui.AnActionButton;
-import com.intellij.ui.AnActionButtonRunnable;
-import com.intellij.ui.AnActionButtonUpdater;
-import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.EditorTextField;
-import com.intellij.ui.EditorTextFieldWithBrowseButton;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.PanelWithAnchor;
-import com.intellij.ui.ToolbarDecorator;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.table.TableView;
-import com.intellij.util.IconUtil;
+import com.intellij.java.execution.JavaExecutionUtil;
+import com.intellij.java.execution.ShortenCommandLine;
+import com.intellij.java.execution.impl.MethodBrowser;
+import com.intellij.java.execution.impl.testDiscovery.TestDiscoveryExtension;
+import com.intellij.java.execution.impl.ui.*;
+import com.intellij.java.language.impl.ui.EditorTextFieldWithBrowseButton;
+import com.intellij.java.language.psi.JavaCodeFragment;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiJavaCodeReferenceElement;
+import com.intellij.java.language.psi.PsiMethod;
+import com.intellij.java.language.util.TreeClassChooser;
+import com.intellij.java.language.util.TreeClassChooserFactory;
 import com.theoryinpractice.testng.MessageInfoException;
 import com.theoryinpractice.testng.configuration.browser.GroupBrowser;
 import com.theoryinpractice.testng.configuration.browser.PackageBrowser;
 import com.theoryinpractice.testng.configuration.browser.SuiteBrowser;
 import com.theoryinpractice.testng.configuration.browser.TestClassBrowser;
-import com.theoryinpractice.testng.model.TestData;
-import com.theoryinpractice.testng.model.TestListenerFilter;
-import com.theoryinpractice.testng.model.TestNGConfigurationModel;
-import com.theoryinpractice.testng.model.TestNGListenersTableModel;
-import com.theoryinpractice.testng.model.TestNGParametersTableModel;
-import com.theoryinpractice.testng.model.TestType;
+import com.theoryinpractice.testng.model.*;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.execution.ExecutionBundle;
+import consulo.execution.configuration.ui.SettingsEditor;
+import consulo.execution.test.TestSearchScope;
+import consulo.execution.ui.awt.BrowseModuleValueActionListener;
+import consulo.fileChooser.FileChooserDescriptor;
+import consulo.fileChooser.FileChooserDescriptorFactory;
+import consulo.language.editor.ui.awt.EditorTextField;
+import consulo.language.plain.PlainTextLanguage;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.logging.Logger;
+import consulo.module.Module;
+import consulo.module.ui.awt.ModuleDescriptionsComboBox;
+import consulo.platform.base.icon.PlatformIconGroup;
+import consulo.project.Project;
+import consulo.ui.ex.action.AnActionEvent;
+import consulo.ui.ex.awt.*;
+import consulo.ui.ex.awt.table.TableView;
+import consulo.util.lang.function.Condition;
+import consulo.virtualFileSystem.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nonnull;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.Document;
+import javax.swing.text.PlainDocument;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class TestNGConfigurationEditor<T extends TestNGConfiguration> extends SettingsEditor<T> implements PanelWithAnchor
 {
@@ -182,7 +155,7 @@ public class TestNGConfigurationEditor<T extends TestNGConfiguration> extends Se
 		final JPanel panel = myPattern.getComponent();
 		panel.setLayout(new BorderLayout());
 		myPatternTextField = new TextFieldWithBrowseButton();
-		myPatternTextField.setButtonIcon(IconUtil.getAddIcon());
+		myPatternTextField.setButtonIcon(PlatformIconGroup.generalAdd());
 		panel.add(myPatternTextField, BorderLayout.CENTER);
 
 		ArrayList<TestType> testTypes = new ArrayList<>();
@@ -203,14 +176,14 @@ public class TestNGConfigurationEditor<T extends TestNGConfiguration> extends Se
 				TestNGConfigurationEditor.this.model.setType((TestType) myTestKind.getSelectedItem());
 			}
 		});
-		myTestKind.setRenderer(new ListCellRendererWrapper<TestType>()
+		myTestKind.setRenderer(new ColoredListCellRenderer<TestType>()
 		{
 			@Override
-			public void customize(JList list, TestType value, int index, boolean selected, boolean hasFocus)
+			protected void customizeCellRenderer(@Nonnull JList<? extends TestType> jList, TestType value, int i, boolean b, boolean b1)
 			{
 				if(value != null)
 				{
-					setText(value.getPresentableName());
+					append(value.getPresentableName());
 				}
 			}
 		});

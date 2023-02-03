@@ -19,18 +19,18 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>consulo</groupId>
-		<artifactId>arch.ide-provided</artifactId>
-		<version>2-SNAPSHOT</version>
+		<artifactId>arch.managment</artifactId>
+		<version>3-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<groupId>consulo.plugin</groupId>
 	<artifactId>consulo.testng-testng.rt</artifactId>
-	<version>2-SNAPSHOT</version>
+	<version>3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
-		<java.level>1.5</java.level>
+		<java.level>1.6</java.level>
 	</properties>
 
 	<repositories>
@@ -49,16 +49,15 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven.compile.plugin}</version>
+				<version>3.8.1</version>
 				<configuration>
-					<compilerId>eclipse</compilerId>
-					<source>${java.level}</source>
-					<target>${java.level}</target>
+					<source>1.6</source>
+					<target>1.6</target>
 					<showDeprecation>true</showDeprecation>
 					<showWarnings>true</showWarnings>
 					<fork>true</fork>
-					<meminitial>2048</meminitial>
-					<maxmem>4096</maxmem>
+					<encoding>UTF-8</encoding>
+					<compilerId>eclipse</compilerId>
 				</configuration>
 				<dependencies>
 					<dependency>
@@ -67,6 +66,17 @@
 						<version>2.8.4</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Automatic-Module-Name>consulo.testng.rt</Automatic-Module-Name>
+						</manifestEntries>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -80,7 +90,7 @@
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<version>6.8.8</version>
+			<version>7.7.1</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

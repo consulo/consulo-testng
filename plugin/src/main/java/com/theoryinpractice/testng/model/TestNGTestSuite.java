@@ -15,21 +15,21 @@
  */
 package com.theoryinpractice.testng.model;
 
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import consulo.execution.CantRunException;
+import consulo.execution.RuntimeConfigurationException;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiFile;
+import consulo.language.psi.PsiUtilCore;
+import consulo.util.lang.Comparing;
+import consulo.virtualFileSystem.VirtualFile;
+import consulo.xml.psi.xml.XmlFile;
+import org.testng.xml.Parser;
+
 import java.util.List;
 import java.util.Map;
-
-import org.testng.xml.Parser;
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.util.PsiUtilCore;
-import com.intellij.psi.xml.XmlFile;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 
 public class TestNGTestSuite extends TestNGTestObject
 {

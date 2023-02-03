@@ -15,27 +15,23 @@
  */
 package com.theoryinpractice.testng.model;
 
-import java.util.List;
-import java.util.Map;
-
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.testframework.SourceScope;
-import com.intellij.execution.testframework.TestSearchScope;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaPackage;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.PackageScope;
+import com.intellij.java.language.psi.*;
+import com.intellij.java.language.psi.search.PackageScope;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.util.TestNGUtil;
-import consulo.psi.PsiPackage;
+import consulo.application.ReadAction;
+import consulo.execution.CantRunException;
+import consulo.execution.RuntimeConfigurationException;
+import consulo.execution.test.SourceScope;
+import consulo.execution.test.TestSearchScope;
+import consulo.language.psi.PsiDirectory;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiPackage;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.util.lang.Comparing;
+
+import java.util.List;
+import java.util.Map;
 
 public class TestNGTestPackage extends TestNGTestObject
 {

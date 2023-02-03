@@ -3,41 +3,30 @@
  */
 package com.theoryinpractice.testng.model;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.intellij.java.indexing.search.searches.AnnotatedMembersSearch;
+import com.intellij.java.language.codeInsight.AnnotationUtil;
+import com.intellij.java.language.psi.*;
+import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.application.ApplicationManager;
+import consulo.application.ReadAction;
+import consulo.application.util.function.Computable;
+import consulo.execution.CantRunException;
+import consulo.execution.RuntimeConfigurationException;
+import consulo.execution.test.SourceScope;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.logging.Logger;
+import consulo.module.Module;
+import consulo.project.Project;
+import consulo.util.collection.ArrayUtil;
+import consulo.util.lang.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
-import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.testframework.SourceScope;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.AnnotatedMembersSearch;
-import com.intellij.util.ArrayUtil;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
-import com.theoryinpractice.testng.util.TestNGUtil;
+
+import java.util.*;
 
 public abstract class TestNGTestObject
 {

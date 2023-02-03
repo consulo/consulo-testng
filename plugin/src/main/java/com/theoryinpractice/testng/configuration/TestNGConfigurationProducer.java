@@ -16,9 +16,9 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.testframework.AbstractJavaTestConfigurationProducer;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.java.execution.impl.testframework.AbstractJavaTestConfigurationProducer;
+import consulo.execution.configuration.ConfigurationType;
+import consulo.util.lang.StringUtil;
 
 public abstract class TestNGConfigurationProducer extends AbstractJavaTestConfigurationProducer<TestNGConfiguration> implements Cloneable
 {

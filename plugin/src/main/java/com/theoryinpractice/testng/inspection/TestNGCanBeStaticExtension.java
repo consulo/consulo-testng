@@ -20,17 +20,25 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import com.intellij.openapi.util.Condition;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
+import com.intellij.java.language.psi.PsiMethod;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.java.analysis.codeInspection.CantBeStaticCondition;
+import consulo.language.psi.PsiElement;
 
-public class TestNGCanBeStaticExtension implements Condition<PsiElement> {
-  public boolean value(PsiElement member) {
-    if (member instanceof PsiMethod) {
-      PsiMethod method = (PsiMethod)member;
-      return TestNGUtil.hasTest(method, false) || TestNGUtil.hasConfig(method);
-    }
-    return false;
-  }
+import javax.annotation.Nonnull;
+
+@ExtensionImpl
+public class TestNGCanBeStaticExtension implements CantBeStaticCondition
+{
+	@Override
+	public boolean cantBeStatic(@Nonnull PsiElement member)
+	{
+		if(member instanceof PsiMethod)
+		{
+			PsiMethod method = (PsiMethod) member;
+			return TestNGUtil.hasTest(method, false) || TestNGUtil.hasConfig(method);
+		}
+		return false;
+	}
 }

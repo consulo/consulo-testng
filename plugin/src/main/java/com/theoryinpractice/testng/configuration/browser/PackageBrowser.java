@@ -15,10 +15,10 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import com.intellij.execution.configuration.BrowseModuleValueActionListener;
-import com.intellij.ide.util.PackageChooserDialog;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiJavaPackage;
+import com.intellij.java.language.impl.codeInsight.PackageChooserDialog;
+import com.intellij.java.language.psi.PsiJavaPackage;
+import consulo.execution.ui.awt.BrowseModuleValueActionListener;
+import consulo.project.Project;
 
 /**
  * @author Hani Suleiman

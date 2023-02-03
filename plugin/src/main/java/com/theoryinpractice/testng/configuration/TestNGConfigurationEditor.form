@@ -16,7 +16,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="3d515" class="com.intellij.openapi.ui.LabeledComponent" binding="methodField">
+          <component id="3d515" class="consulo.ui.ex.awt.LabeledComponent" binding="methodField">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -24,7 +24,7 @@
               <text value="M&amp;ethod"/>
             </properties>
           </component>
-          <component id="93b2" class="com.intellij.openapi.ui.LabeledComponent" binding="suiteField">
+          <component id="93b2" class="consulo.ui.ex.awt.LabeledComponent" binding="suiteField">
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -39,7 +39,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="c819c" class="com.intellij.openapi.ui.LabeledComponent" binding="packageField">
+              <component id="c819c" class="consulo.ui.ex.awt.LabeledComponent" binding="packageField">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                   <gridbag weightx="0.0" weighty="0.0"/>
@@ -77,7 +77,7 @@
               </component>
             </children>
           </grid>
-          <component id="ecafd" class="com.intellij.openapi.ui.LabeledComponent" binding="classField">
+          <component id="ecafd" class="consulo.ui.ex.awt.LabeledComponent" binding="classField">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -85,7 +85,7 @@
               <text value="&amp;Class"/>
             </properties>
           </component>
-          <component id="d1d3" class="com.intellij.openapi.ui.LabeledComponent" binding="outputDirectory">
+          <component id="d1d3" class="consulo.ui.ex.awt.LabeledComponent" binding="outputDirectory">
             <constraints>
               <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -93,7 +93,7 @@
               <text value="&amp;Output directory"/>
             </properties>
           </component>
-          <component id="ba631" class="com.intellij.openapi.ui.LabeledComponent" binding="groupField">
+          <component id="ba631" class="consulo.ui.ex.awt.LabeledComponent" binding="groupField">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -101,7 +101,7 @@
               <text value="&amp;Group"/>
             </properties>
           </component>
-          <component id="d64d9" class="com.intellij.openapi.ui.LabeledComponent" binding="myPattern">
+          <component id="d64d9" class="consulo.ui.ex.awt.LabeledComponent" binding="myPattern">
             <constraints>
               <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -113,7 +113,7 @@
           </component>
         </children>
       </grid>
-      <tabbedpane id="7ce0a" class="com.intellij.ui.components.JBTabbedPane" default-binding="true">
+      <tabbedpane id="7ce0a" class="consulo.ui.ex.awt.JBTabbedPane" default-binding="true">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="200" height="200"/>
@@ -130,16 +130,16 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="6ab4" class="com.intellij.openapi.ui.LabeledComponent" binding="moduleClasspath">
+              <component id="6ab4" class="consulo.ui.ex.awt.LabeledComponent" binding="moduleClasspath">
                 <constraints>
                   <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <componentClass value="com.intellij.application.options.ModuleDescriptionsComboBox"/>
+                  <componentClass value="consulo.module.ui.awt.ModuleDescriptionsComboBox"/>
                   <text resource-bundle="messages/JavaExecutionBundle" key="application.configuration.use.classpath.and.jdk.of.module.label"/>
                 </properties>
               </component>
-              <component id="86d21" class="com.intellij.openapi.ui.LabeledComponent" binding="myShortenCommandLineCombo" custom-create="true" default-binding="true">
+              <component id="86d21" class="consulo.ui.ex.awt.LabeledComponent" binding="myShortenCommandLineCombo" custom-create="true" default-binding="true">
                 <constraints>
                   <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -167,7 +167,7 @@
                   </grid>
                 </constraints>
               </vspacer>
-              <component id="baac2" class="com.intellij.execution.ui.JrePathEditor" binding="alternateJDK">
+              <component id="baac2" class="com.intellij.java.execution.impl.ui.JrePathEditor" binding="alternateJDK">
                 <constraints>
                   <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -182,7 +182,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="64fad" class="com.intellij.openapi.ui.LabeledComponent" binding="propertiesFile">
+              <component id="64fad" class="consulo.ui.ex.awt.LabeledComponent" binding="propertiesFile">
                 <constraints border-constraint="North"/>
                 <properties>
                   <text value="&amp;Properties file"/>
@@ -250,7 +250,7 @@
             </constraints>
             <properties/>
           </component>
-          <component id="ec186" class="com.intellij.ui.components.JBLabel" binding="myTestLabel">
+          <component id="ec186" class="consulo.ui.ex.awt.JBLabel" binding="myTestLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>

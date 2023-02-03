@@ -15,23 +15,15 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import java.awt.BorderLayout;
+import com.intellij.java.language.psi.PsiClass;
+import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.ui.ex.awt.*;
+import consulo.util.collection.ArrayUtil;
+
+import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Set;
-
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
-
-import com.intellij.openapi.ui.DialogBuilder;
-import com.intellij.psi.PsiClass;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.ScrollingUtil;
-import com.intellij.ui.SortedListModel;
-import com.intellij.ui.components.JBList;
-import com.intellij.util.ArrayUtil;
-import com.theoryinpractice.testng.util.TestNGUtil;
 
 public class GroupList extends JPanel
 {

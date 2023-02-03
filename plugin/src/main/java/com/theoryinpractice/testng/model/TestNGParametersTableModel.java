@@ -16,18 +16,15 @@
 
 package com.theoryinpractice.testng.model;
 
+import consulo.ui.ex.JBColor;
+import consulo.ui.ex.awt.ColumnInfo;
+import consulo.ui.ex.awt.table.ListTableModel;
+
+import javax.swing.*;
+import javax.swing.table.TableCellEditor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JTextField;
-import javax.swing.table.TableCellEditor;
-
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.ListTableModel;
 
 public class TestNGParametersTableModel extends ListTableModel<Map.Entry<String, String>>
 {

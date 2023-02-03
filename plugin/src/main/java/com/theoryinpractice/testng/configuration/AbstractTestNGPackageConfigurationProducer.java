@@ -15,17 +15,17 @@
  */
 package com.theoryinpractice.testng.configuration;
 
-import com.intellij.execution.Location;
-import com.intellij.execution.actions.ConfigurationContext;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
-import com.intellij.execution.junit2.info.LocationUtil;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaPackage;
+import com.intellij.java.execution.impl.junit.JavaRuntimeConfigurationProducerBase;
+import com.intellij.java.execution.impl.junit2.info.LocationUtil;
+import com.intellij.java.language.psi.PsiJavaPackage;
 import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestType;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.execution.action.ConfigurationContext;
+import consulo.execution.action.Location;
+import consulo.execution.configuration.ConfigurationType;
+import consulo.language.psi.PsiElement;
+import consulo.util.lang.ref.Ref;
 
 public abstract class AbstractTestNGPackageConfigurationProducer extends TestNGConfigurationProducer
 {

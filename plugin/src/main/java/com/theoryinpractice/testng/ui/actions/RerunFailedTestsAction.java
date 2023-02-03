@@ -1,38 +1,33 @@
 package com.theoryinpractice.testng.ui.actions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jetbrains.annotations.NotNull;
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.Executor;
-import com.intellij.execution.Location;
-import com.intellij.execution.actions.JavaRerunFailedTestsAction;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.junit2.PsiMemberParameterizedLocation;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.testframework.AbstractTestProxy;
-import com.intellij.execution.testframework.TestConsoleProperties;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentContainer;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.java.execution.impl.actions.JavaRerunFailedTestsAction;
+import com.intellij.java.execution.impl.junit2.PsiMemberParameterizedLocation;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.intellij.java.language.psi.PsiModifier;
 import com.theoryinpractice.testng.configuration.SearchingForTestsTask;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationProducer;
 import com.theoryinpractice.testng.configuration.TestNGRunnableState;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.application.ApplicationManager;
+import consulo.application.ReadAction;
+import consulo.execution.CantRunException;
+import consulo.execution.action.Location;
+import consulo.execution.configuration.RunProfileState;
+import consulo.execution.executor.Executor;
+import consulo.execution.runner.ExecutionEnvironment;
+import consulo.execution.test.AbstractTestProxy;
+import consulo.execution.test.TestConsoleProperties;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.module.Module;
+import consulo.project.Project;
+import consulo.ui.ex.ComponentContainer;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 
 public class RerunFailedTestsAction extends JavaRerunFailedTestsAction
 {
@@ -68,7 +63,7 @@ public class RerunFailedTestsAction extends JavaRerunFailedTestsAction
 							@Override
 							protected void fillTestObjects(final Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException
 							{
-								final HashMap<PsiClass, Map<PsiMethod, List<String>>> fullClassList = ContainerUtil.newHashMap();
+								final HashMap<PsiClass, Map<PsiMethod, List<String>>> fullClassList = new HashMap<>();
 								super.fillTestObjects(fullClassList);
 								for(final PsiClass aClass : fullClassList.keySet())
 								{

@@ -16,40 +16,34 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import com.beust.jcommander.JCommander;
+import com.intellij.java.execution.impl.JavaTestFrameworkRunnableState;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.theoryinpractice.testng.model.TestData;
+import consulo.container.plugin.PluginManager;
+import consulo.execution.executor.Executor;
+import consulo.execution.process.ProcessTerminatedListener;
+import consulo.execution.runner.ExecutionEnvironment;
+import consulo.execution.test.TestSearchScope;
+import consulo.java.execution.configurations.OwnJavaParameters;
+import consulo.language.util.ModuleUtilCore;
+import consulo.logging.Logger;
+import consulo.module.Module;
+import consulo.process.ExecutionException;
+import consulo.process.ProcessHandler;
+import consulo.process.ProcessHandlerBuilder;
+import consulo.process.cmd.ParametersList;
+import consulo.util.io.ClassPathUtil;
+import consulo.util.io.NetUtil;
+import consulo.util.lang.StringUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.testng.CommandLineArgs;
-import org.testng.IDEATestNGListener;
-import org.testng.RemoteTestNGStarter;
-import com.beust.jcommander.JCommander;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.Executor;
-import com.intellij.execution.JavaTestFrameworkRunnableState;
-import com.intellij.execution.configurations.ParametersList;
-import com.intellij.execution.process.KillableColoredProcessHandler;
-import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessTerminatedListener;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.testframework.TestSearchScope;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.intellij.rt.execution.testFrameworks.ForkedDebuggerHelper;
-import com.intellij.util.PathUtil;
-import com.intellij.util.net.NetUtils;
-import com.theoryinpractice.testng.model.TestData;
-import consulo.java.execution.configurations.OwnJavaParameters;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGConfiguration>
 {
@@ -68,9 +62,9 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 
 	@NotNull
 	@Override
-	protected OSProcessHandler startProcess() throws ExecutionException
+	protected ProcessHandler startProcess() throws ExecutionException
 	{
-		final OSProcessHandler processHandler = new KillableColoredProcessHandler(createCommandLine());
+		final ProcessHandler processHandler = ProcessHandlerBuilder.create(createCommandLine()).killable().colored().build();
 		ProcessTerminatedListener.attach(processHandler);
 		createSearchingForTestsTask().attachTaskToProcess(processHandler);
 		return processHandler;
@@ -78,7 +72,7 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 
 	@NotNull
 	@Override
-	protected OSProcessHandler createHandler(Executor executor) throws ExecutionException
+	protected ProcessHandler createHandler(Executor executor) throws ExecutionException
 	{
 		appendForkInfo(executor);
 		return startProcess();
@@ -100,19 +94,21 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 	@Override
 	protected void configureRTClasspath(OwnJavaParameters javaParameters)
 	{
-		javaParameters.getClassPath().add(PathUtil.getJarPathForClass(RemoteTestNGStarter.class));
-		javaParameters.getClassPath().addTail(PathUtil.getJarPathForClass(JCommander.class));
+		File pluginPath = PluginManager.getPluginPath(TestNGRunnableState.class);
+
+		javaParameters.getClassPath().add(new File(pluginPath, "testng-rt.jar"));
+		javaParameters.getClassPath().addTail(ClassPathUtil.getJarPathForClass(JCommander.class));
 	}
 
 	@Override
 	protected OwnJavaParameters createJavaParameters() throws ExecutionException
 	{
 		final OwnJavaParameters javaParameters = super.createJavaParameters();
-		javaParameters.setMainClass("org.testng.RemoteTestNGStarter");
+		javaParameters.setMainClass("consulo.testng.rt.RemoteTestNGStarter");
 
 		try
 		{
-			port = NetUtils.findAvailableSocketPort();
+			port = NetUtil.findAvailableSocketPort();
 		}
 		catch(IOException e)
 		{
@@ -133,11 +129,11 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 		{
 			buf.append(StringUtil.join(data.TEST_LISTENERS, ";"));
 		}
-		collectListeners(javaParameters, buf, IDEATestNGListener.EP_NAME.getName(), ";");
-		if(buf.length() > 0)
-		{
-			javaParameters.getProgramParametersList().add(CommandLineArgs.LISTENER, buf.toString());
-		}
+//		collectListeners(javaParameters, buf, IDEATestNGListener.EP_NAME.getName(), ";");
+//		if(buf.length() > 0)
+//		{
+//			javaParameters.getProgramParametersList().add(CommandLineArgs.LISTENER, buf.toString());
+//		}
 
 		createServerSocket(javaParameters);
 		createTempFiles(javaParameters);
@@ -250,7 +246,7 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 		parametersList.addAt(paramIdx, "@@@" + tempFile.getAbsolutePath());
 		if(getForkSocket() != null)
 		{
-			parametersList.addAt(paramIdx, ForkedDebuggerHelper.DEBUG_SOCKET + getForkSocket().getLocalPort());
+			parametersList.addAt(paramIdx, "-debugSocket" + getForkSocket().getLocalPort());
 		}
 	}
 }

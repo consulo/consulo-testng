@@ -1,12 +1,42 @@
 // Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.theoryinpractice.testng.util;
 
-import java.io.File;
-import java.util.*;
-import java.util.jar.Attributes;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.intellij.java.indexing.search.searches.AllClassesSearch;
+import com.intellij.java.language.codeInsight.AnnotationUtil;
+import com.intellij.java.language.psi.*;
+import com.intellij.java.language.psi.javadoc.PsiDocComment;
+import com.intellij.java.language.psi.javadoc.PsiDocTag;
+import com.intellij.java.language.psi.util.PsiClassUtil;
+import com.intellij.java.language.psi.util.PsiUtil;
+import com.theoryinpractice.testng.model.TestClassFilter;
+import consulo.application.ApplicationManager;
+import consulo.application.ReadAction;
+import consulo.application.progress.ProgressIndicator;
+import consulo.application.progress.ProgressManager;
+import consulo.application.util.CachedValueProvider;
+import consulo.application.util.CachedValuesManager;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiManager;
+import consulo.language.psi.PsiModificationTracker;
+import consulo.language.psi.resolve.PsiElementProcessor;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.language.psi.util.LanguageCachedValueUtil;
+import consulo.language.psi.util.PsiTreeUtil;
+import consulo.language.util.ModuleUtilCore;
+import consulo.module.Module;
+import consulo.module.content.ProjectRootManager;
+import consulo.module.content.util.ModuleRootModificationUtil;
+import consulo.project.Project;
+import consulo.ui.ex.awt.Messages;
+import consulo.util.collection.ContainerUtil;
+import consulo.util.io.BufferExposingByteArrayInputStream;
+import consulo.util.io.ClassPathUtil;
+import consulo.util.io.JarUtil;
+import consulo.util.lang.StringUtil;
+import consulo.util.lang.Version;
+import consulo.util.xml.fastReader.NanoXmlUtil;
+import consulo.virtualFileSystem.VirtualFile;
+import consulo.virtualFileSystem.util.VirtualFileUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,39 +44,14 @@ import org.testng.Assert;
 import org.testng.ITestNGListener;
 import org.testng.TestNG;
 import org.testng.annotations.*;
-import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Version;
-import com.intellij.openapi.util.io.JarUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.javadoc.PsiDocTag;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.PsiElementProcessor;
-import com.intellij.psi.search.searches.AllClassesSearch;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiClassUtil;
-import com.intellij.psi.util.PsiModificationTracker;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
-import com.intellij.util.PathUtil;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.xml.NanoXmlUtil;
-import com.theoryinpractice.testng.model.TestClassFilter;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.jar.Attributes;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Hani Suleiman
@@ -61,7 +66,7 @@ public class TestNGUtil
 
 	private static boolean hasDocTagsSupport()
 	{
-		String testngJarPath = PathUtil.getJarPathForClass(Test.class);
+		String testngJarPath = ClassPathUtil.getJarPathForClass(Test.class);
 		String version = JarUtil.getJarAttribute(new File(testngJarPath), Attributes.Name.IMPLEMENTATION_VERSION);
 		return version != null && StringUtil.compareVersionNumbers(version, "5.12") <= 0;
 	}
@@ -70,7 +75,6 @@ public class TestNGUtil
 	public static final String FACTORY_ANNOTATION_FQN = Factory.class.getName();
 	@SuppressWarnings("deprecation")
 	public static final String[] CONFIG_ANNOTATIONS_FQN = {
-			Configuration.class.getName(),
 			Factory.class.getName(),
 			ObjectFactory.class.getName(),
 			DataProvider.class.getName(),
@@ -88,7 +92,6 @@ public class TestNGUtil
 
 	@SuppressWarnings("deprecation")
 	public static final String[] CONFIG_ANNOTATIONS_FQN_NO_TEST_LEVEL = {
-			Configuration.class.getName(),
 			Factory.class.getName(),
 			ObjectFactory.class.getName(),
 			BeforeClass.class.getName(),
@@ -103,7 +106,6 @@ public class TestNGUtil
 
 	@NonNls
 	private static final String[] CONFIG_JAVADOC_TAGS = {
-			"testng.configuration",
 			"testng.before-class",
 			"testng.before-groups",
 			"testng.before-method",
@@ -224,7 +226,7 @@ public class TestNGUtil
 
 	public static boolean hasTest(PsiModifierListOwner element)
 	{
-		return CachedValuesManager.getCachedValue(element, () -> CachedValueProvider.Result.create(hasTest(element, true), PsiModificationTracker.MODIFICATION_COUNT));
+		return LanguageCachedValueUtil.getCachedValue(element, () -> CachedValueProvider.Result.create(hasTest(element, true), PsiModificationTracker.MODIFICATION_COUNT));
 	}
 
 	public static boolean hasTest(PsiModifierListOwner element, boolean checkDisabled)
@@ -557,7 +559,7 @@ public class TestNGUtil
 			{
 				return false;
 			}
-			String url = VfsUtil.getUrlForLibraryRoot(new File(PathUtil.getJarPathForClass(Assert.class)));
+			String url = VirtualFileUtil.getUrlForLibraryRoot(new File(ClassPathUtil.getJarPathForClass(Assert.class)));
 			ModuleRootModificationUtil.addModuleLibrary(module, url);
 		}
 		return true;
@@ -622,7 +624,16 @@ public class TestNGUtil
 	{
 		if("xml".equalsIgnoreCase(virtualFile.getExtension()) && virtualFile.isInLocalFileSystem() && virtualFile.isValid())
 		{
-			final String result = NanoXmlUtil.parseHeader(virtualFile).getRootTagLocalName();
+			final String result;
+			try
+			{
+				result = NanoXmlUtil.parseHeader(new InputStreamReader(new BufferExposingByteArrayInputStream(virtualFile.contentsToByteArray()))).getRootTagLocalName();
+			}
+			catch(IOException e)
+			{
+				return false;
+			}
+
 			if(result != null && result.equals(SUITE_TAG_NAME))
 			{
 				return true;

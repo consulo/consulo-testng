@@ -15,11 +15,11 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import com.intellij.execution.configuration.BrowseModuleValueActionListener;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
+import consulo.execution.ui.awt.BrowseModuleValueActionListener;
+import consulo.fileChooser.FileChooserDescriptor;
+import consulo.fileChooser.IdeaFileChooser;
+import consulo.project.Project;
+import consulo.virtualFileSystem.VirtualFile;
 
 /**
  * @author Hani Suleiman
@@ -48,7 +48,7 @@ public class SuiteBrowser extends BrowseModuleValueActionListener
 		};
 		descriptor.setDescription("Please select the testng.xml suite file");
 		descriptor.setTitle("Select Suite");
-		VirtualFile file = FileChooser.chooseFile(descriptor, getProject(), null);
+		VirtualFile file = IdeaFileChooser.chooseFile(descriptor, getProject(), null);
 		return file != null ? file.getPath() : null;
 	}
 }

@@ -15,127 +15,177 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
-import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.java.analysis.impl.codeInspection.BaseJavaLocalInspectionTool;
+import com.intellij.java.language.psi.*;
+import com.intellij.java.language.psi.util.InheritanceUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.language.editor.inspection.ProblemsHolder;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiElementVisitor;
+import consulo.language.psi.PsiManager;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.project.Project;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @author Bas Leijdekkers
  */
-public class AssertsWithoutMessagesTestNGInspection extends BaseJavaLocalInspectionTool {
+@ExtensionImpl
+public class AssertsWithoutMessagesTestNGInspection extends BaseJavaLocalInspectionTool
+{
+	@NotNull
+	@Override
+	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly)
+	{
+		return new AssertionsWithoutMessagesVisitor(holder);
+	}
 
-  @NotNull
-  @Override
-  public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
-    return new AssertionsWithoutMessagesVisitor(holder);
-  }
+	@Override
+	public boolean isEnabledByDefault()
+	{
+		return false;
+	}
 
-  private static class AssertionsWithoutMessagesVisitor extends JavaElementVisitor {
+	@Nonnull
+	@Override
+	public String getDisplayName()
+	{
+		return "Message missing on TestNG assertion";
+	}
 
-    @NonNls private static final Set<String> ourAssertMethods = new HashSet<String>(10);
-    private final ProblemsHolder myProblemsHolder;
+	@Nonnull
+	@Override
+	public String getGroupDisplayName()
+	{
+		return "TestNG";
+	}
 
-    public AssertionsWithoutMessagesVisitor(ProblemsHolder problemsHolder) {
-      myProblemsHolder = problemsHolder;
-    }
+	private static class AssertionsWithoutMessagesVisitor extends JavaElementVisitor
+	{
 
-    static {
-      ourAssertMethods.add("assertArrayEquals");
-      ourAssertMethods.add("assertEquals");
-      ourAssertMethods.add("assertEqualsNoOrder");
-      ourAssertMethods.add("assertFalse");
-      ourAssertMethods.add("assertNotEquals");
-      ourAssertMethods.add("assertNotNull");
-      ourAssertMethods.add("assertNotSame");
-      ourAssertMethods.add("assertNull");
-      ourAssertMethods.add("assertSame");
-      ourAssertMethods.add("assertTrue");
-      ourAssertMethods.add("fail");
-    }
+		@NonNls
+		private static final Set<String> ourAssertMethods = new HashSet<String>(10);
+		private final ProblemsHolder myProblemsHolder;
 
-    @Override
-    public void visitMethodCallExpression(@NotNull PsiMethodCallExpression expression) {
-      super.visitMethodCallExpression(expression);
-      final PsiReferenceExpression methodExpression = expression.getMethodExpression();
-      final String methodName = methodExpression.getReferenceName();
-      if (methodName == null || !ourAssertMethods.contains(methodName)) {
-        return;
-      }
-      final PsiMethod method = expression.resolveMethod();
-      if (method == null) {
-        return;
-      }
-      final PsiClass containingClass = method.getContainingClass();
-      final boolean messageFirst;
-      if (InheritanceUtil.isInheritor(containingClass, "org.testng.AssertJUnit")) {
-        messageFirst = true;
-      }
-      else if (InheritanceUtil.isInheritor(containingClass, "org.testng.Assert")) {
-        messageFirst = false;
-      }
-      else {
-        return;
-      }
-      final PsiParameterList parameterList = method.getParameterList();
-      final int parameterCount = parameterList.getParametersCount();
-      if (parameterCount < 2 && methodName.startsWith("assert")) {
-        registerMethodCallError(expression);
-        return;
-      }
-      if (parameterCount < 1) {
-        registerMethodCallError(expression);
-        return;
-      }
-      final PsiManager psiManager = expression.getManager();
-      final Project project = psiManager.getProject();
-      final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-      final PsiType stringType = PsiType.getJavaLangString(psiManager, scope);
-      final PsiParameter[] parameters = parameterList.getParameters();
-      if (messageFirst) {
-        final PsiType parameterType1 = parameters[0].getType();
-        if (!stringType.equals(parameterType1)) {
-          registerMethodCallError(expression);
-          return;
-        }
-        if (parameters.length == 2) {
-          final PsiType parameterType2 = parameters[1].getType();
-          if (stringType.equals(parameterType2)) {
-            registerMethodCallError(expression);
-          }
-        }
-      }
-      else {
-        final PsiType lastParameterType = parameters[parameters.length - 1].getType();
-        if (!stringType.equals(lastParameterType)) {
-          registerMethodCallError(expression);
-          return;
-        }
-        if (parameters.length == 2) {
-          final PsiType firstParameterType = parameters[0].getType();
-          if (stringType.equals(firstParameterType)) {
-            registerMethodCallError(expression);
-          }
-        }
-      }
-    }
+		public AssertionsWithoutMessagesVisitor(ProblemsHolder problemsHolder)
+		{
+			myProblemsHolder = problemsHolder;
+		}
 
-    private void registerMethodCallError(PsiMethodCallExpression expression) {
-      final PsiReferenceExpression methodExpression = expression.getMethodExpression();
-      final PsiElement nameElement = methodExpression.getReferenceNameElement();
-      if (nameElement == null) {
-        myProblemsHolder.registerProblem(methodExpression, "TestNG <code>#ref()</code> without message #loc");
-      }
-      else {
-        myProblemsHolder.registerProblem(nameElement, "TestNG <code>#ref()</code> without message #loc");
-      }
-    }
-  }
+		static
+		{
+			ourAssertMethods.add("assertArrayEquals");
+			ourAssertMethods.add("assertEquals");
+			ourAssertMethods.add("assertEqualsNoOrder");
+			ourAssertMethods.add("assertFalse");
+			ourAssertMethods.add("assertNotEquals");
+			ourAssertMethods.add("assertNotNull");
+			ourAssertMethods.add("assertNotSame");
+			ourAssertMethods.add("assertNull");
+			ourAssertMethods.add("assertSame");
+			ourAssertMethods.add("assertTrue");
+			ourAssertMethods.add("fail");
+		}
+
+		@Override
+		public void visitMethodCallExpression(@NotNull PsiMethodCallExpression expression)
+		{
+			super.visitMethodCallExpression(expression);
+			final PsiReferenceExpression methodExpression = expression.getMethodExpression();
+			final String methodName = methodExpression.getReferenceName();
+			if(methodName == null || !ourAssertMethods.contains(methodName))
+			{
+				return;
+			}
+			final PsiMethod method = expression.resolveMethod();
+			if(method == null)
+			{
+				return;
+			}
+			final PsiClass containingClass = method.getContainingClass();
+			final boolean messageFirst;
+			if(InheritanceUtil.isInheritor(containingClass, "org.testng.AssertJUnit"))
+			{
+				messageFirst = true;
+			}
+			else if(InheritanceUtil.isInheritor(containingClass, "org.testng.Assert"))
+			{
+				messageFirst = false;
+			}
+			else
+			{
+				return;
+			}
+			final PsiParameterList parameterList = method.getParameterList();
+			final int parameterCount = parameterList.getParametersCount();
+			if(parameterCount < 2 && methodName.startsWith("assert"))
+			{
+				registerMethodCallError(expression);
+				return;
+			}
+			if(parameterCount < 1)
+			{
+				registerMethodCallError(expression);
+				return;
+			}
+			final PsiManager psiManager = expression.getManager();
+			final Project project = psiManager.getProject();
+			final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+			final PsiType stringType = PsiType.getJavaLangString(psiManager, scope);
+			final PsiParameter[] parameters = parameterList.getParameters();
+			if(messageFirst)
+			{
+				final PsiType parameterType1 = parameters[0].getType();
+				if(!stringType.equals(parameterType1))
+				{
+					registerMethodCallError(expression);
+					return;
+				}
+				if(parameters.length == 2)
+				{
+					final PsiType parameterType2 = parameters[1].getType();
+					if(stringType.equals(parameterType2))
+					{
+						registerMethodCallError(expression);
+					}
+				}
+			}
+			else
+			{
+				final PsiType lastParameterType = parameters[parameters.length - 1].getType();
+				if(!stringType.equals(lastParameterType))
+				{
+					registerMethodCallError(expression);
+					return;
+				}
+				if(parameters.length == 2)
+				{
+					final PsiType firstParameterType = parameters[0].getType();
+					if(stringType.equals(firstParameterType))
+					{
+						registerMethodCallError(expression);
+					}
+				}
+			}
+		}
+
+		private void registerMethodCallError(PsiMethodCallExpression expression)
+		{
+			final PsiReferenceExpression methodExpression = expression.getMethodExpression();
+			final PsiElement nameElement = methodExpression.getReferenceNameElement();
+			if(nameElement == null)
+			{
+				myProblemsHolder.registerProblem(methodExpression, "TestNG <code>#ref()</code> without message #loc");
+			}
+			else
+			{
+				myProblemsHolder.registerProblem(nameElement, "TestNG <code>#ref()</code> without message #loc");
+			}
+		}
+	}
 }

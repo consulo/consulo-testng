@@ -20,50 +20,51 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.swing.SwingUtilities;
-
+import com.intellij.java.analysis.impl.codeInspection.BaseJavaLocalInspectionTool;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiIdentifier;
+import com.intellij.java.language.psi.util.PsiClassUtil;
+import com.theoryinpractice.testng.configuration.browser.SuiteBrowser;
+import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.application.Result;
+import consulo.fileChooser.FileChooserDescriptorFactory;
+import consulo.fileChooser.IdeaFileChooser;
+import consulo.language.editor.WriteCommandAction;
+import consulo.language.editor.inspection.LocalQuickFix;
+import consulo.language.editor.inspection.ProblemDescriptor;
+import consulo.language.editor.inspection.ProblemHighlightType;
+import consulo.language.editor.inspection.scheme.InspectionManager;
+import consulo.language.psi.PsiDirectory;
+import consulo.language.psi.PsiFile;
+import consulo.language.psi.PsiFileFactory;
+import consulo.language.psi.PsiManager;
+import consulo.language.psi.search.PsiNonJavaFileReferenceProcessor;
+import consulo.language.psi.search.PsiSearchHelper;
+import consulo.language.psi.util.PsiTreeUtil;
+import consulo.language.util.IncorrectOperationException;
+import consulo.logging.Logger;
+import consulo.project.Project;
+import consulo.virtualFileSystem.LocalFileSystem;
+import consulo.virtualFileSystem.VirtualFile;
+import consulo.xml.ide.highlighter.XmlFileType;
+import consulo.xml.psi.xml.XmlAttribute;
+import consulo.xml.psi.xml.XmlFile;
+import consulo.xml.psi.xml.XmlTag;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
-import com.intellij.codeInspection.InspectionManager;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.codeInspection.ProblemHighlightType;
-import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.PsiNonJavaFileReferenceProcessor;
-import com.intellij.psi.search.PsiSearchHelper;
-import com.intellij.psi.util.PsiClassUtil;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.IncorrectOperationException;
-import com.theoryinpractice.testng.configuration.browser.SuiteBrowser;
-import com.theoryinpractice.testng.util.TestNGUtil;
 
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@ExtensionImpl
 public class UndeclaredTestInspection extends BaseJavaLocalInspectionTool
 {
-	private static final Logger LOG = Logger.getInstance("#" + UndeclaredTestInspection.class.getName());
+	private static final Logger LOG = Logger.getInstance(UndeclaredTestInspection.class);
 
 	@Override
 	@Nls
@@ -71,6 +72,12 @@ public class UndeclaredTestInspection extends BaseJavaLocalInspectionTool
 	public String getGroupDisplayName()
 	{
 		return TestNGUtil.TESTNG_GROUP_NAME;
+	}
+
+	@Override
+	public boolean isEnabledByDefault()
+	{
+		return false;
 	}
 
 	@Override
@@ -283,7 +290,7 @@ public class UndeclaredTestInspection extends BaseJavaLocalInspectionTool
 				@Override
 				public void run()
 				{
-					final VirtualFile file = FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), project, null);
+					final VirtualFile file = IdeaFileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), project, null);
 					if(file != null)
 					{
 						final PsiManager psiManager = PsiManager.getInstance(project);

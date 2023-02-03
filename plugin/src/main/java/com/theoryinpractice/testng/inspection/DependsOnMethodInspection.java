@@ -15,10 +15,16 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import com.intellij.codeInspection.*;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.*;
+import com.intellij.java.analysis.impl.codeInspection.BaseJavaLocalInspectionTool;
+import com.intellij.java.language.psi.*;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.language.editor.inspection.LocalQuickFix;
+import consulo.language.editor.inspection.ProblemDescriptor;
+import consulo.language.editor.inspection.ProblemHighlightType;
+import consulo.language.editor.inspection.scheme.InspectionManager;
+import consulo.language.psi.PsiElement;
+import consulo.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,122 +36,153 @@ import java.util.regex.Pattern;
 /**
  * @author Hani Suleiman Date: Aug 3, 2005 Time: 3:34:56 AM
  */
+@ExtensionImpl
 public class DependsOnMethodInspection extends BaseJavaLocalInspectionTool
 {
-    private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
-    private static final Pattern PATTERN = Pattern.compile("\"([a-zA-Z1-9_\\(\\)]*)\"");
-    private static final ProblemDescriptor[] EMPTY = new ProblemDescriptor[0];
-    
-    @NotNull
-    @Override
-    public String getGroupDisplayName() {
-        return "TestNG";
-    }
+	private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
+	private static final Pattern PATTERN = Pattern.compile("\"([a-zA-Z1-9_\\(\\)]*)\"");
+	private static final ProblemDescriptor[] EMPTY = new ProblemDescriptor[0];
 
-    @NotNull
-    @Override
-    public String getDisplayName() {
-        return "dependsOnMethods problem";
-    }
+	@NotNull
+	@Override
+	public String getGroupDisplayName()
+	{
+		return "TestNG";
+	}
 
-    @NotNull
-    @Override
-    public String getShortName() {
-        return "dependsOnMethodTestNG";
-    }
+	@NotNull
+	@Override
+	public String getDisplayName()
+	{
+		return "dependsOnMethods problem";
+	}
 
-    public boolean isEnabledByDefault() {
-        return true;
-    }
+	@NotNull
+	@Override
+	public String getShortName()
+	{
+		return "dependsOnMethodTestNG";
+	}
 
-    @Override
-    @Nullable
-    public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly) {
+	public boolean isEnabledByDefault()
+	{
+		return true;
+	}
 
-        //LOGGER.info("Looking for dependsOnMethods problems in " + psiClass.getName());
+	@Override
+	@Nullable
+	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly)
+	{
 
-        if (!psiClass.getContainingFile().isWritable()) return null;
+		//LOGGER.info("Looking for dependsOnMethods problems in " + psiClass.getName());
 
-        PsiAnnotation[] annotations = TestNGUtil.getTestNGAnnotations(psiClass);
-        if(annotations.length == 0) return EMPTY;
-        List<ProblemDescriptor> problemDescriptors = new ArrayList<ProblemDescriptor>();
+		if(!psiClass.getContainingFile().isWritable())
+		{
+			return null;
+		}
 
-        for (PsiAnnotation annotation : annotations) {
-            PsiNameValuePair dep = null;
-            PsiNameValuePair[] params = annotation.getParameterList().getAttributes();
-            for (PsiNameValuePair param : params) {
-                if ("dependsOnMethods".equals(param.getName())) {
-                    dep = param;
-                    break;
-                }
-            }
+		PsiAnnotation[] annotations = TestNGUtil.getTestNGAnnotations(psiClass);
+		if(annotations.length == 0)
+		{
+			return EMPTY;
+		}
+		List<ProblemDescriptor> problemDescriptors = new ArrayList<ProblemDescriptor>();
 
-            if (dep != null) {
-                if (dep.getValue() != null) {
-                  final PsiAnnotationMemberValue value = dep.getValue();
-                  if (value != null) {
-                    String text = value.getText();
-                    if (value instanceof PsiReferenceExpression) {
-                      final PsiElement resolve = ((PsiReferenceExpression)value).resolve();
-                      if (resolve instanceof PsiField && ((PsiField)resolve).hasModifierProperty(PsiModifier.STATIC) && ((PsiField)resolve).hasModifierProperty(PsiModifier.FINAL)) {
-                        final PsiExpression initializer = ((PsiField)resolve).getInitializer();
-                        if (initializer != null) {
-                          text = initializer.getText();
-                        }
-                      }
-                    }
-                    Matcher matcher = PATTERN.matcher(text);
-                    while (matcher.find()) {
-                        String methodName = matcher.group(1);
-                        checkMethodNameDependency(manager, psiClass, methodName, dep, problemDescriptors, isOnTheFly);
-                    }
-                  }
-                }
-            }
-        }
-        
-        return problemDescriptors.toArray(new ProblemDescriptor[] {} );
-    }
+		for(PsiAnnotation annotation : annotations)
+		{
+			PsiNameValuePair dep = null;
+			PsiNameValuePair[] params = annotation.getParameterList().getAttributes();
+			for(PsiNameValuePair param : params)
+			{
+				if("dependsOnMethods".equals(param.getName()))
+				{
+					dep = param;
+					break;
+				}
+			}
 
-    private static void checkMethodNameDependency(InspectionManager manager, PsiClass psiClass, String methodName, PsiNameValuePair dep,
-                                                  List<ProblemDescriptor> problemDescriptors, boolean onTheFly) {
-        LOGGER.debug("Found dependsOnMethods with text: " + methodName);
-        if (methodName.length() > 0 && methodName.charAt(methodName.length() - 1) == ')') {
+			if(dep != null)
+			{
+				if(dep.getValue() != null)
+				{
+					final PsiAnnotationMemberValue value = dep.getValue();
+					if(value != null)
+					{
+						String text = value.getText();
+						if(value instanceof PsiReferenceExpression)
+						{
+							final PsiElement resolve = ((PsiReferenceExpression) value).resolve();
+							if(resolve instanceof PsiField && ((PsiField) resolve).hasModifierProperty(PsiModifier.STATIC) && ((PsiField) resolve).hasModifierProperty(PsiModifier.FINAL))
+							{
+								final PsiExpression initializer = ((PsiField) resolve).getInitializer();
+								if(initializer != null)
+								{
+									text = initializer.getText();
+								}
+							}
+						}
+						Matcher matcher = PATTERN.matcher(text);
+						while(matcher.find())
+						{
+							String methodName = matcher.group(1);
+							checkMethodNameDependency(manager, psiClass, methodName, dep, problemDescriptors, isOnTheFly);
+						}
+					}
+				}
+			}
+		}
 
-            LOGGER.debug("dependsOnMethods contains ()" + psiClass.getName());
-            // TODO Add quick fix for removing brackets on annotation
-            ProblemDescriptor descriptor = manager.createProblemDescriptor(dep,
-                                                               "Method '" + methodName + "' should not include () characters.",
-                                                               (LocalQuickFix) null,
-                                                               ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, onTheFly);
+		return problemDescriptors.toArray(new ProblemDescriptor[]{});
+	}
 
-            problemDescriptors.add(descriptor);
+	private static void checkMethodNameDependency(InspectionManager manager, PsiClass psiClass, String methodName, PsiNameValuePair dep,
+												  List<ProblemDescriptor> problemDescriptors, boolean onTheFly)
+	{
+		LOGGER.debug("Found dependsOnMethods with text: " + methodName);
+		if(methodName.length() > 0 && methodName.charAt(methodName.length() - 1) == ')')
+		{
 
-        } else {
-            PsiMethod[] foundMethods = psiClass.findMethodsByName(methodName, true);
+			LOGGER.debug("dependsOnMethods contains ()" + psiClass.getName());
+			// TODO Add quick fix for removing brackets on annotation
+			ProblemDescriptor descriptor = manager.createProblemDescriptor(dep,
+					"Method '" + methodName + "' should not include () characters.",
+					(LocalQuickFix) null,
+					ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, onTheFly);
 
-            if (foundMethods.length == 0) {
-                LOGGER.debug("dependsOnMethods method doesn't exist:" + methodName);
-                ProblemDescriptor descriptor = manager.createProblemDescriptor(dep,
-                                                                   "Method '" + methodName + "' unknown.",
-                                                                   (LocalQuickFix) null,
-                                                                   ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, onTheFly);
-                problemDescriptors.add(descriptor);
+			problemDescriptors.add(descriptor);
 
-            } else {
-              boolean hasTestsOrConfigs = false;
-              for (PsiMethod foundMethod : foundMethods) {
-                 hasTestsOrConfigs |= TestNGUtil.hasTest(foundMethod) || TestNGUtil.hasConfig(foundMethod);
-              }
-              if (!hasTestsOrConfigs) {
-                ProblemDescriptor descriptor = manager.createProblemDescriptor(dep,
-                                                                     "Method '" + methodName + "' is not a test or configuration method.",
-                                                                     (LocalQuickFix) null,
-                                                                     ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, onTheFly);
-                problemDescriptors.add(descriptor);
-              }
-            }
-        }
-    }
+		}
+		else
+		{
+			PsiMethod[] foundMethods = psiClass.findMethodsByName(methodName, true);
+
+			if(foundMethods.length == 0)
+			{
+				LOGGER.debug("dependsOnMethods method doesn't exist:" + methodName);
+				ProblemDescriptor descriptor = manager.createProblemDescriptor(dep,
+						"Method '" + methodName + "' unknown.",
+						(LocalQuickFix) null,
+						ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, onTheFly);
+				problemDescriptors.add(descriptor);
+
+			}
+			else
+			{
+				boolean hasTestsOrConfigs = false;
+				for(PsiMethod foundMethod : foundMethods)
+				{
+					hasTestsOrConfigs |= TestNGUtil.hasTest(foundMethod) || TestNGUtil.hasConfig(foundMethod);
+				}
+				if(!hasTestsOrConfigs)
+				{
+					ProblemDescriptor descriptor = manager.createProblemDescriptor(dep,
+							"Method '" + methodName + "' is not a test or configuration method.",
+							(LocalQuickFix) null,
+							ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, onTheFly);
+					problemDescriptors.add(descriptor);
+				}
+			}
+		}
+	}
 
 }

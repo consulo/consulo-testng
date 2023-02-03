@@ -15,114 +15,160 @@
  */
 package com.theoryinpractice.testng.inspection;
 
+import com.intellij.java.analysis.impl.codeInspection.BaseJavaLocalInspectionTool;
+import com.intellij.java.language.psi.*;
+import com.intellij.java.language.psi.util.InheritanceUtil;
+import com.intellij.java.language.psi.util.TypeConversionUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.java.language.module.util.JavaClassNames;
+import consulo.language.editor.inspection.ProblemsHolder;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiElementVisitor;
+import consulo.language.psi.PsiManager;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.util.lang.StringUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
-import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.InheritanceUtil;
-import com.intellij.psi.util.TypeConversionUtil;
-import consulo.java.module.util.JavaClassNames;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Bas Leijdekkers
  */
-public class AssertEqualsBetweenInconvertibleTypesTestNGInspection extends BaseJavaLocalInspectionTool {
+@ExtensionImpl
+public class AssertEqualsBetweenInconvertibleTypesTestNGInspection extends BaseJavaLocalInspectionTool
+{
+	@Nonnull
+	@Override
+	public String getDisplayName()
+	{
+		return "'assertEquals()' between objects of inconvertible types";
+	}
 
-  @NotNull
-  @Override
-  public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
-    return new AssertEqualsBetweenInconvertibleTypesVisitor(holder);
-  }
+	@Override
+	public boolean isEnabledByDefault()
+	{
+		return true;
+	}
 
-  private static class AssertEqualsBetweenInconvertibleTypesVisitor extends JavaElementVisitor {
+	@Nonnull
+	@Override
+	public String getGroupDisplayName()
+	{
+		return "TestNG";
+	}
 
-    private final ProblemsHolder myProblemsHolder;
+	@NotNull
+	@Override
+	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly)
+	{
+		return new AssertEqualsBetweenInconvertibleTypesVisitor(holder);
+	}
 
-    public AssertEqualsBetweenInconvertibleTypesVisitor(ProblemsHolder problemsHolder) {
-      myProblemsHolder = problemsHolder;
-    }
+	private static class AssertEqualsBetweenInconvertibleTypesVisitor extends JavaElementVisitor
+	{
 
-    @Override
-    public void visitMethodCallExpression(@NotNull PsiMethodCallExpression expression) {
-      super.visitMethodCallExpression(expression);
-      final PsiReferenceExpression methodExpression = expression.getMethodExpression();
-      @NonNls final String methodName = methodExpression.getReferenceName();
-      if (!"assertEquals".equals(methodName)) {
-        return;
-      }
-      final PsiMethod method = expression.resolveMethod();
-      if (method == null) {
-        return;
-      }
-      final PsiClass containingClass = method.getContainingClass();
-      final boolean junit;
-      if (InheritanceUtil.isInheritor(containingClass, "org.testng.Assert")) {
-        junit = false;
-      }
-      else if (InheritanceUtil.isInheritor(containingClass, "org.testng.AssertJUnit")) {
-        junit = true;
-      }
-      else {
-        return;
-      }
-      final PsiParameterList parameterList = method.getParameterList();
-      final PsiParameter[] parameters = parameterList.getParameters();
-      if (parameters.length < 2) {
-        return;
-      }
-      final PsiType firstParameterType = parameters[0].getType();
-      final PsiExpressionList argumentList = expression.getArgumentList();
-      final PsiExpression[] arguments = argumentList.getExpressions();
-      final PsiExpression expression1;
-      final PsiExpression expression2;
-      final PsiType parameterType1;
-      final PsiType parameterType2;
-      if (junit && firstParameterType.equalsToText(JavaClassNames.JAVA_LANG_STRING)) {
-        if (arguments.length < 3) {
-          return;
-        }
-        expression1 = arguments[1];
-        expression2 = arguments[2];
-        parameterType1 = parameters[1].getType();
-        parameterType2 = parameters[2].getType();
-      }
-      else {
-        if (arguments.length < 2) {
-          return;
-        }
-        expression1 = arguments[0];
-        expression2 = arguments[1];
-        parameterType1 = parameters[0].getType();
-        parameterType2 = parameters[1].getType();
-      }
-      final PsiType type1 = expression1.getType();
-      if (type1 == null) {
-        return;
-      }
-      final PsiType type2 = expression2.getType();
-      if (type2 == null) {
-        return;
-      }
-      final PsiManager manager = expression.getManager();
-      final GlobalSearchScope scope = expression.getResolveScope();
-      final PsiClassType objectType = PsiType.getJavaLangObject(manager, scope);
-      if (!objectType.equals(parameterType1) || !objectType.equals(parameterType2)) {
-        return;
-      }
-      if (TypeConversionUtil.areTypesConvertible(type1, type2)) {
-        return;
-      }
-      final PsiElement referenceNameElement = methodExpression.getReferenceNameElement();
-      if (referenceNameElement == null) {
-        return;
-      }
-      myProblemsHolder.registerProblem(referenceNameElement,
-                                       "<code>#ref()</code> between objects of inconvertible types '" +
-                                       StringUtil.escapeXml(type1.getPresentableText()) + "' and '" +
-                                       StringUtil.escapeXml(type2.getPresentableText()) + "' #loc");
-    }
-  }
+		private final ProblemsHolder myProblemsHolder;
+
+		public AssertEqualsBetweenInconvertibleTypesVisitor(ProblemsHolder problemsHolder)
+		{
+			myProblemsHolder = problemsHolder;
+		}
+
+		@Override
+		public void visitMethodCallExpression(@NotNull PsiMethodCallExpression expression)
+		{
+			super.visitMethodCallExpression(expression);
+			final PsiReferenceExpression methodExpression = expression.getMethodExpression();
+			@NonNls final String methodName = methodExpression.getReferenceName();
+			if(!"assertEquals".equals(methodName))
+			{
+				return;
+			}
+			final PsiMethod method = expression.resolveMethod();
+			if(method == null)
+			{
+				return;
+			}
+			final PsiClass containingClass = method.getContainingClass();
+			final boolean junit;
+			if(InheritanceUtil.isInheritor(containingClass, "org.testng.Assert"))
+			{
+				junit = false;
+			}
+			else if(InheritanceUtil.isInheritor(containingClass, "org.testng.AssertJUnit"))
+			{
+				junit = true;
+			}
+			else
+			{
+				return;
+			}
+			final PsiParameterList parameterList = method.getParameterList();
+			final PsiParameter[] parameters = parameterList.getParameters();
+			if(parameters.length < 2)
+			{
+				return;
+			}
+			final PsiType firstParameterType = parameters[0].getType();
+			final PsiExpressionList argumentList = expression.getArgumentList();
+			final PsiExpression[] arguments = argumentList.getExpressions();
+			final PsiExpression expression1;
+			final PsiExpression expression2;
+			final PsiType parameterType1;
+			final PsiType parameterType2;
+			if(junit && firstParameterType.equalsToText(JavaClassNames.JAVA_LANG_STRING))
+			{
+				if(arguments.length < 3)
+				{
+					return;
+				}
+				expression1 = arguments[1];
+				expression2 = arguments[2];
+				parameterType1 = parameters[1].getType();
+				parameterType2 = parameters[2].getType();
+			}
+			else
+			{
+				if(arguments.length < 2)
+				{
+					return;
+				}
+				expression1 = arguments[0];
+				expression2 = arguments[1];
+				parameterType1 = parameters[0].getType();
+				parameterType2 = parameters[1].getType();
+			}
+			final PsiType type1 = expression1.getType();
+			if(type1 == null)
+			{
+				return;
+			}
+			final PsiType type2 = expression2.getType();
+			if(type2 == null)
+			{
+				return;
+			}
+			final PsiManager manager = expression.getManager();
+			final GlobalSearchScope scope = expression.getResolveScope();
+			final PsiClassType objectType = PsiType.getJavaLangObject(manager, scope);
+			if(!objectType.equals(parameterType1) || !objectType.equals(parameterType2))
+			{
+				return;
+			}
+			if(TypeConversionUtil.areTypesConvertible(type1, type2))
+			{
+				return;
+			}
+			final PsiElement referenceNameElement = methodExpression.getReferenceNameElement();
+			if(referenceNameElement == null)
+			{
+				return;
+			}
+			myProblemsHolder.registerProblem(referenceNameElement,
+					"<code>#ref()</code> between objects of inconvertible types '" +
+							StringUtil.escapeXml(type1.getPresentableText()) + "' and '" +
+							StringUtil.escapeXml(type2.getPresentableText()) + "' #loc");
+		}
+	}
 }

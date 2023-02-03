@@ -15,18 +15,22 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import com.intellij.java.execution.impl.testframework.AbstractInClassConfigurationProducer;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.execution.action.ConfigurationContext;
+import consulo.execution.action.ConfigurationFromContext;
+import consulo.execution.configuration.ConfigurationType;
+import consulo.language.psi.PsiElement;
+import consulo.util.lang.ref.Ref;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
-import com.intellij.execution.actions.ConfigurationContext;
-import com.intellij.execution.actions.ConfigurationFromContext;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.testframework.AbstractInClassConfigurationProducer;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiElement;
 
+@ExtensionImpl
 public class TestNGInClassConfigurationProducer extends TestNGConfigurationProducer
 {
 	private TestNGInClassConfigurationProducerDelegate myDelegate = new TestNGInClassConfigurationProducerDelegate(TestNGConfigurationType.getInstance());
 
+	@Inject
 	protected TestNGInClassConfigurationProducer()
 	{
 		super(TestNGConfigurationType.getInstance());

@@ -15,8 +15,13 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import consulo.annotation.component.ExtensionImpl;
+import jakarta.inject.Inject;
+
+@ExtensionImpl
 public class TestNGSuiteConfigurationProducer extends AbstractTestNGSuiteConfigurationProducer
 {
+	@Inject
 	public TestNGSuiteConfigurationProducer()
 	{
 		super(TestNGConfigurationType.getInstance());

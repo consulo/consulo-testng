@@ -15,7 +15,7 @@
  */
 package com.theoryinpractice.testng;
 
-import com.intellij.openapi.ui.ex.MessagesEx;
+import consulo.ui.ex.awt.MessagesEx;
 
 /**
  * @author Hani Suleiman

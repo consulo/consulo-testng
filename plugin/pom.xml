@@ -19,14 +19,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>consulo</groupId>
-		<artifactId>arch.ide-provided</artifactId>
-		<version>2-SNAPSHOT</version>
+		<artifactId>arch.ide-api-provided</artifactId>
+		<version>3-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<groupId>consulo.plugin</groupId>
 	<artifactId>consulo.testng</artifactId>
-	<version>2-SNAPSHOT</version>
+	<version>3-SNAPSHOT</version>
 	<packaging>consulo-plugin</packaging>
 
 	<repositories>
@@ -45,10 +45,8 @@
 			<plugin>
 				<groupId>consulo.maven</groupId>
 				<artifactId>maven-consulo-plugin</artifactId>
-				<version>2-SNAPSHOT</version>
 				<extensions>true</extensions>
 				<configuration>
-					<repositoryChannel>nightly</repositoryChannel>
 					<dependencies>
 						<dependency>consulo.java</dependency>
 						<dependency>com.intellij.xml</dependency>
@@ -56,6 +54,12 @@
 					<packaging>
 						<skip>${dev.mode}</skip>
 						<version>${build.number}</version>
+						<copies>
+							<copy>
+								<artifact>${project.groupId}:consulo.testng-testng.rt:${project.version}</artifact>
+								<path>testng-rt.jar</path>
+							</copy>
+						</copies>
 					</packaging>
 				</configuration>
 				<executions>
@@ -83,18 +87,19 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>consulo.testng-testng.rt</artifactId>
 			<version>${project.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<version>6.8.8</version>
+			<version>7.7.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.beust</groupId>
 			<artifactId>jcommander</artifactId>
-			<version>1.27</version>
+			<version>1.82</version>
 		</dependency>
 
 		<dependency>
@@ -106,23 +111,15 @@
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>consulo.java-java.impl.testing</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>${project.groupId}</groupId>
 			<artifactId>com.intellij.xml</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>${project.parent.groupId}</groupId>
-			<artifactId>consulo-lang-impl-testing</artifactId>
-			<version>${project.parent.version}</version>
-			<scope>test</scope>
+			<groupId>consulo.internal</groupId>
+			<artifactId>forms_rt</artifactId>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

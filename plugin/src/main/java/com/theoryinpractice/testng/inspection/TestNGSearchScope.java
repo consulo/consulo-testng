@@ -15,39 +15,44 @@
  */
 package com.theoryinpractice.testng.inspection;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.module.Module;
+import consulo.module.content.ProjectFileIndex;
+import consulo.module.content.ProjectRootManager;
+import consulo.project.Project;
+import consulo.virtualFileSystem.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 /**
-* User: anna
-*/
-public class TestNGSearchScope extends GlobalSearchScope {
+ * User: anna
+ */
+public class TestNGSearchScope extends GlobalSearchScope
+{
+	private final ProjectFileIndex myFileIndex;
 
-  private final ProjectFileIndex myFileIndex;
+	public TestNGSearchScope(Project project)
+	{
+		myFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+	}
 
-  public TestNGSearchScope(Project project) {
-    myFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-  }
+	public boolean contains(VirtualFile file)
+	{
+		return myFileIndex.isInContent(file) && TestNGUtil.isTestngXML(file);
+	}
 
-  public boolean contains(VirtualFile file) {
-    return myFileIndex.isInContent(file) && TestNGUtil.isTestngXML(file);
-  }
+	public int compare(VirtualFile file1, VirtualFile file2)
+	{
+		return 0;
+	}
 
-  public int compare(VirtualFile file1, VirtualFile file2) {
-    return 0;
-  }
+	public boolean isSearchInModuleContent(@NotNull Module aModule)
+	{
+		return true;
+	}
 
-  public boolean isSearchInModuleContent(@NotNull Module aModule) {
-    return true;
-  }
-
-  public boolean isSearchInLibraries() {
-    return false;
-  }
+	public boolean isSearchInLibraries()
+	{
+		return false;
+	}
 }

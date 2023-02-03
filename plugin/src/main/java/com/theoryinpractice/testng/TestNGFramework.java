@@ -1,22 +1,25 @@
 // Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.theoryinpractice.testng;
 
-import com.intellij.CommonBundle;
-import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.intention.AddAnnotationFix;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.ide.fileTemplates.FileTemplateDescriptor;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.roots.ExternalLibraryDescriptor;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import com.intellij.testIntegration.JavaTestFramework;
-import com.intellij.util.IncorrectOperationException;
+import com.intellij.java.analysis.impl.codeInsight.intention.AddAnnotationFix;
+import com.intellij.java.language.codeInsight.AnnotationUtil;
+import com.intellij.java.language.projectRoots.roots.ExternalLibraryDescriptor;
+import com.intellij.java.language.psi.*;
+import com.intellij.java.language.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.java.language.testIntegration.JavaTestFramework;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationType;
 import com.theoryinpractice.testng.intention.TestNGExternalLibraryResolver;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.application.ApplicationManager;
+import consulo.application.CommonBundle;
+import consulo.execution.configuration.ConfigurationType;
+import consulo.fileTemplate.FileTemplateDescriptor;
+import consulo.language.psi.PsiElement;
+import consulo.language.psi.PsiManager;
+import consulo.language.util.IncorrectOperationException;
 import consulo.testng.icon.TestNGIconGroup;
+import consulo.ui.ex.awt.Messages;
 import consulo.ui.image.Image;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +30,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.List;
 
+@ExtensionImpl
 public class TestNGFramework extends JavaTestFramework
 {
 	private final static List<String> SECONDARY_BEFORE_ANNOTATIONS = Arrays.asList("org.testng.annotations.BeforeTest", "org.testng.annotations.BeforeClass", "org.testng.annotations.BeforeSuite",
@@ -43,7 +47,7 @@ public class TestNGFramework extends JavaTestFramework
 	@Override
 	public Image getIcon()
 	{
-		return TestNGIconGroup.testNG();
+		return TestNGIconGroup.testng();
 	}
 
 	@Override

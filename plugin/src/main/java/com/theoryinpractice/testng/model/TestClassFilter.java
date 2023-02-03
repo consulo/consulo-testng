@@ -1,20 +1,20 @@
 // Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.theoryinpractice.testng.model;
 
+import com.intellij.java.execution.configurations.ConfigurationUtil;
+import com.intellij.java.language.codeInsight.AnnotationUtil;
+import com.intellij.java.language.psi.CommonClassNames;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.intellij.java.language.psi.PsiParameter;
+import com.intellij.java.language.util.ClassFilter;
+import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.application.ReadAction;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.project.Project;
+
 import java.util.Arrays;
 import java.util.List;
-
-import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.execution.configurations.ConfigurationUtil;
-import com.intellij.ide.util.ClassFilter;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.theoryinpractice.testng.util.TestNGUtil;
 
 /**
  * @author Hani Suleiman
@@ -51,7 +51,7 @@ public class TestClassFilter implements ClassFilter.ClassFilterWithScope
 	{
 		return ReadAction.compute(() ->
 		{
-			if(!ConfigurationUtil.PUBLIC_INSTANTIATABLE_CLASS.value(psiClass))
+			if(!ConfigurationUtil.PUBLIC_INSTANTIATABLE_CLASS.test(psiClass))
 			{
 				return false;
 			}

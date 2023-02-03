@@ -15,18 +15,18 @@
  */
 package com.theoryinpractice.testng.model;
 
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.execution.CantRunException;
+import consulo.execution.RuntimeConfigurationException;
+import consulo.execution.test.SourceScope;
+import consulo.language.psi.scope.GlobalSearchScope;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.testframework.SourceScope;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
-import com.theoryinpractice.testng.util.TestNGUtil;
 
 public class TestNGTestGroup extends TestNGTestObject
 {

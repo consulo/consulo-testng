@@ -15,16 +15,16 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import org.jetbrains.annotations.Nullable;
-import com.intellij.execution.configuration.BrowseModuleValueActionListener;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.java.language.psi.PsiClass;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
 import com.theoryinpractice.testng.model.TestClassFilter;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.execution.ui.awt.BrowseModuleValueActionListener;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.module.Module;
+import consulo.project.Project;
+import consulo.ui.ex.awt.Messages;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Hani Suleiman

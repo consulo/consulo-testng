@@ -4,29 +4,42 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import com.intellij.execution.Location;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.configuration.ConfigurationFactoryEx;
-import com.intellij.execution.configurations.*;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.psi.PsiElement;
 import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
-import consulo.java.module.extension.JavaModuleExtension;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.component.extension.ExtensionInstance;
+import consulo.execution.RunManager;
+import consulo.execution.action.Location;
+import consulo.execution.configuration.*;
+import consulo.java.language.module.extension.JavaModuleExtension;
+import consulo.language.psi.PsiElement;
+import consulo.module.Module;
 import consulo.module.extension.ModuleExtensionHelper;
+import consulo.project.Project;
 import consulo.testng.icon.TestNGIconGroup;
 import consulo.ui.image.Image;
+import consulo.util.lang.Comparing;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
+import java.util.function.Supplier;
+
+@ExtensionImpl
 public class TestNGConfigurationType implements ConfigurationType
 {
+	private static final Supplier<TestNGConfigurationType> INSTANCE = ExtensionInstance.from(ConfigurationType.class);
+
+	@Nonnull
+	public static TestNGConfigurationType getInstance()
+	{
+		return INSTANCE.get();
+	}
+
 	private final ConfigurationFactory myFactory;
 
 	public TestNGConfigurationType()
 	{
-		myFactory = new ConfigurationFactoryEx(this)
+		myFactory = new ConfigurationFactory(this)
 		{
 			@NotNull
 			@Override
@@ -49,11 +62,6 @@ public class TestNGConfigurationType implements ConfigurationType
 		};
 	}
 
-	public static TestNGConfigurationType getInstance()
-	{
-		return ConfigurationTypeUtil.findConfigurationType(TestNGConfigurationType.class);
-	}
-
 	public boolean isConfigurationByLocation(RunConfiguration runConfiguration, Location location)
 	{
 		TestNGConfiguration config = (TestNGConfiguration) runConfiguration;
@@ -74,7 +82,8 @@ public class TestNGConfigurationType implements ConfigurationType
 					return true;
 				}
 
-				final Module predefinedModule = ((TestNGConfiguration) RunManager.getInstance(location.getProject()).getConfigurationTemplate(myFactory).getConfiguration()).getConfigurationModule().getModule();
+				final Module predefinedModule = ((TestNGConfiguration) RunManager.getInstance(location.getProject()).getConfigurationTemplate(myFactory).getConfiguration()).getConfigurationModule()
+						.getModule();
 				return Comparing.equal(predefinedModule, configurationModule);
 
 			}
@@ -100,7 +109,7 @@ public class TestNGConfigurationType implements ConfigurationType
 	@Override
 	public Image getIcon()
 	{
-		return TestNGIconGroup.testNG();
+		return TestNGIconGroup.testng();
 	}
 
 	@Override

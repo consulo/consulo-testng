@@ -15,14 +15,14 @@
  */
 package com.theoryinpractice.testng.model;
 
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.psi.PsiMethod;
+import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import consulo.execution.CantRunException;
+import consulo.util.lang.StringUtil;
+
 import java.util.List;
 import java.util.Map;
-
-import com.intellij.execution.CantRunException;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 
 public class TestNGSource extends TestNGTestMethod
 {

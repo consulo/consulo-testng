@@ -15,20 +15,21 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import com.intellij.execution.configuration.BrowseModuleValueActionListener;
-import com.intellij.ide.util.ClassFilter;
-import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ex.MessagesEx;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.java.language.psi.PsiClass;
+import com.intellij.java.language.util.ClassFilter;
+import com.intellij.java.language.util.TreeClassChooser;
+import com.intellij.java.language.util.TreeClassChooserFactory;
 import com.theoryinpractice.testng.MessageInfoException;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationType;
 import com.theoryinpractice.testng.model.TestClassFilter;
+import consulo.execution.ui.awt.BrowseModuleValueActionListener;
+import consulo.language.psi.PsiDirectory;
+import consulo.language.psi.scope.GlobalSearchScope;
+import consulo.module.Module;
+import consulo.project.Project;
+import consulo.ui.ex.awt.MessagesEx;
 
 /**
  * @author Hani Suleiman
@@ -115,7 +116,7 @@ public class TestClassBrowser extends BrowseModuleValueActionListener
 		{
 			return;
 		}
-		com.intellij.psi.PsiDirectory psidirectory = psiclass.getContainingFile().getContainingDirectory();
+		PsiDirectory psidirectory = psiclass.getContainingFile().getContainingDirectory();
 		if(psidirectory != null)
 		{
 			chooser.selectDirectory(psidirectory);

@@ -15,10 +15,12 @@
  */
 package com.theoryinpractice.testng.configuration;
 
+import com.intellij.java.execution.impl.JavaTestFrameworkDebuggerRunner;
+import consulo.annotation.component.ExtensionImpl;
+import consulo.execution.configuration.RunProfile;
 import org.jetbrains.annotations.NotNull;
-import com.intellij.execution.JavaTestFrameworkDebuggerRunner;
-import com.intellij.execution.configurations.RunProfile;
 
+@ExtensionImpl
 public class TestNGDebuggerRunner extends JavaTestFrameworkDebuggerRunner
 {
 	@Override
