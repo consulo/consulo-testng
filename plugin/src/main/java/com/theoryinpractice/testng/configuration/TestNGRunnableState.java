@@ -23,7 +23,6 @@ import com.intellij.java.language.psi.PsiMethod;
 import com.theoryinpractice.testng.model.TestData;
 import consulo.container.plugin.PluginManager;
 import consulo.execution.executor.Executor;
-import consulo.execution.process.ProcessTerminatedListener;
 import consulo.execution.runner.ExecutionEnvironment;
 import consulo.execution.test.TestSearchScope;
 import consulo.java.execution.configurations.OwnJavaParameters;
@@ -41,6 +40,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.testng.CommandLineArgs;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -60,14 +60,20 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 		//setModulesToCompile(ModuleManager.getInstance(config.getProject()).getModules());
 	}
 
-	@NotNull
 	@Override
-	protected ProcessHandler startProcess() throws ExecutionException
+	protected void buildProcessHandler(@Nonnull ProcessHandlerBuilder builder) throws ExecutionException
 	{
-		final ProcessHandler processHandler = ProcessHandlerBuilder.create(createCommandLine()).killable().colored().build();
-		ProcessTerminatedListener.attach(processHandler);
-		createSearchingForTestsTask().attachTaskToProcess(processHandler);
-		return processHandler;
+		super.buildProcessHandler(builder);
+
+		builder.colored().killable();
+	}
+
+	@Override
+	protected void setupProcessHandler(@Nonnull ProcessHandler handler)
+	{
+		super.setupProcessHandler(handler);
+
+		createSearchingForTestsTask().attachTaskToProcess(handler);
 	}
 
 	@NotNull
