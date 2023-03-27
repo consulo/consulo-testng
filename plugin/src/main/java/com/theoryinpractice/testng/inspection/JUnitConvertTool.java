@@ -77,7 +77,7 @@ public class JUnitConvertTool extends BaseJavaLocalInspectionTool
 
 	@Override
 	@Nullable
-	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly)
+	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly, Object state)
 	{
 		if(TestNGUtil.inheritsJUnitTestCase(psiClass) || TestNGUtil.containsJunitAnnotations(psiClass))
 		{

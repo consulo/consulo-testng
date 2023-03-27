@@ -19,29 +19,22 @@ import com.intellij.java.analysis.impl.codeInspection.BaseJavaLocalInspectionToo
 import com.intellij.java.language.psi.*;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.annotation.component.ExtensionImpl;
+import consulo.language.editor.inspection.InspectionToolState;
 import consulo.language.editor.inspection.LocalQuickFix;
 import consulo.language.editor.inspection.ProblemDescriptor;
 import consulo.language.editor.inspection.ProblemHighlightType;
 import consulo.language.editor.inspection.scheme.InspectionManager;
 import consulo.language.editor.inspection.scheme.InspectionProfile;
-import consulo.language.editor.inspection.scheme.InspectionProfileManager;
 import consulo.language.editor.inspection.scheme.InspectionProjectProfileManager;
 import consulo.language.psi.PsiElement;
+import consulo.language.psi.SmartPointerManager;
+import consulo.language.psi.SmartPsiElementPointer;
 import consulo.logging.Logger;
 import consulo.project.Project;
-import consulo.ui.ex.awt.LabeledComponent;
-import consulo.ui.ex.awt.event.DocumentAdapter;
-import consulo.util.collection.ArrayUtil;
-import consulo.util.collection.ContainerUtil;
-import consulo.util.lang.StringUtil;
-import consulo.util.xml.serializer.JDOMExternalizableStringList;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.*;
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -51,31 +44,36 @@ import java.util.regex.Pattern;
  * @author Hani Suleiman Date: Aug 3, 2005 Time: 3:34:56 AM
  */
 @ExtensionImpl
-public class DependsOnGroupsInspection extends BaseJavaLocalInspectionTool
+public class DependsOnGroupsInspection extends BaseJavaLocalInspectionTool<DependsOnGroupsInspectionState>
 {
 	private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
 	private static final Pattern PATTERN = Pattern.compile("\"([a-zA-Z0-9_\\-\\(\\)]*)\"");
 	private static final ProblemDescriptor[] EMPTY = new ProblemDescriptor[0];
 
-	public JDOMExternalizableStringList groups = new JDOMExternalizableStringList();
-	@NonNls
 	public static String SHORT_NAME = "groupsTestNG";
 
-	@NotNull
+	@Nonnull
+	@Override
+	public InspectionToolState<? extends DependsOnGroupsInspectionState> createStateProvider()
+	{
+		return new DependsOnGroupsInspectionState();
+	}
+
+	@Nonnull
 	@Override
 	public String getGroupDisplayName()
 	{
 		return "TestNG";
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
 	public String getDisplayName()
 	{
 		return "Groups problem";
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
 	public String getShortName()
 	{
@@ -87,32 +85,10 @@ public class DependsOnGroupsInspection extends BaseJavaLocalInspectionTool
 		return true;
 	}
 
-	@Nullable
-	public JComponent createOptionsPanel()
-	{
-		final LabeledComponent<JTextField> definedGroups = new LabeledComponent<JTextField>();
-		definedGroups.setText("&Defined Groups");
-		final JTextField textField = new JTextField(StringUtil.join(ArrayUtil.toStringArray(groups), ","));
-		textField.getDocument().addDocumentListener(new DocumentAdapter()
-		{
-			protected void textChanged(final DocumentEvent e)
-			{
-				groups.clear();
-				final String[] groupsFromString = textField.getText().split("[, ]");
-				ContainerUtil.addAll(groups, groupsFromString);
-			}
-		});
-		definedGroups.setComponent(textField);
-		final JPanel optionsPanel = new JPanel(new BorderLayout());
-		optionsPanel.add(definedGroups, BorderLayout.NORTH);
-		return optionsPanel;
-	}
-
 	@Override
 	@Nullable
-	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly)
+	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly, DependsOnGroupsInspectionState state)
 	{
-
 		if(!psiClass.getContainingFile().isWritable())
 		{
 			return null;
@@ -164,11 +140,11 @@ public class DependsOnGroupsInspection extends BaseJavaLocalInspectionTool
 					while(matcher.find())
 					{
 						String methodName = matcher.group(1);
-						if(!groups.contains(methodName))
+						if(!state.groups.contains(methodName))
 						{
 							LOGGER.info("group doesn't exist:" + methodName);
 							ProblemDescriptor descriptor = manager.createProblemDescriptor(annotation, "Group '" + methodName + "' is undefined.",
-									new GroupNameQuickFix(methodName),
+									new GroupNameQuickFix(methodName, psiClass),
 									ProblemHighlightType.GENERIC_ERROR_OR_WARNING, isOnTheFly);
 							problemDescriptors.add(descriptor);
 
@@ -182,12 +158,13 @@ public class DependsOnGroupsInspection extends BaseJavaLocalInspectionTool
 
 	private class GroupNameQuickFix implements LocalQuickFix
 	{
-
 		String myGroupName;
+		private SmartPsiElementPointer<PsiClass> myPointer;
 
-		public GroupNameQuickFix(@NotNull String groupName)
+		public GroupNameQuickFix(@NotNull String groupName, PsiClass psiClass)
 		{
 			myGroupName = groupName;
+			myPointer = SmartPointerManager.createPointer(psiClass);
 		}
 
 		@NotNull
@@ -204,20 +181,15 @@ public class DependsOnGroupsInspection extends BaseJavaLocalInspectionTool
 
 		public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor)
 		{
-			groups.add(myGroupName);
+			PsiClass element = myPointer.getElement();
+			if(element == null)
+			{
+				return;
+			}
 			final InspectionProfile inspectionProfile =
 					InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
-			//correct save settings
-			InspectionProfileManager.getInstance().fireProfileChanged(inspectionProfile);
-			//TODO lesya
-	  /*
-      try {
-        inspectionProfile.save();
-      }
-      catch (IOException e) {
-        Messages.showErrorDialog(project, e.getMessage(), CommonBundle.getErrorTitle());
-      }
-      */
+			inspectionProfile.<DependsOnGroupsInspection, DependsOnGroupsInspectionState>modifyToolSettings(SHORT_NAME, element, (inspectionTool, state) ->
+					state.groups.add(myGroupName));
 		}
 	}
 }

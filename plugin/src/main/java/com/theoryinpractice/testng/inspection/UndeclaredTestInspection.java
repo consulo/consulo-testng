@@ -98,8 +98,7 @@ public class UndeclaredTestInspection extends BaseJavaLocalInspectionTool
 
 	@Override
 	@Nullable
-	public ProblemDescriptor[] checkClass(
-			@NotNull final PsiClass aClass, @NotNull final InspectionManager manager, final boolean isOnTheFly)
+	public ProblemDescriptor[] checkClass(@NotNull final PsiClass aClass, @NotNull final InspectionManager manager, final boolean isOnTheFly, Object state)
 	{
 		if(TestNGUtil.hasTest(aClass) && PsiClassUtil.isRunnableClass(aClass, true))
 		{

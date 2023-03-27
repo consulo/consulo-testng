@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  * @author Hani Suleiman Date: Aug 3, 2005 Time: 3:34:56 AM
  */
 @ExtensionImpl
-public class DependsOnMethodInspection extends BaseJavaLocalInspectionTool
+public class DependsOnMethodInspection extends BaseJavaLocalInspectionTool<Object>
 {
 	private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
 	private static final Pattern PATTERN = Pattern.compile("\"([a-zA-Z1-9_\\(\\)]*)\"");
@@ -71,9 +71,8 @@ public class DependsOnMethodInspection extends BaseJavaLocalInspectionTool
 
 	@Override
 	@Nullable
-	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly)
+	public ProblemDescriptor[] checkClass(@NotNull PsiClass psiClass, @NotNull InspectionManager manager, boolean isOnTheFly, Object state)
 	{
-
 		//LOGGER.info("Looking for dependsOnMethods problems in " + psiClass.getName());
 
 		if(!psiClass.getContainingFile().isWritable())

@@ -27,6 +27,7 @@ import com.intellij.java.language.codeInsight.AnnotationUtil;
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.PsiUtil;
 import com.theoryinpractice.testng.inspection.DependsOnGroupsInspection;
+import com.theoryinpractice.testng.inspection.DependsOnGroupsInspectionState;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.language.Language;
@@ -332,8 +333,7 @@ public class TestNGReferenceContributor extends PsiReferenceContributor
 			List<Object> list = new ArrayList<Object>();
 
 			InspectionProfile inspectionProfile = InspectionProjectProfileManager.getInstance(myProject).getInspectionProfile();
-			DependsOnGroupsInspection inspection = (DependsOnGroupsInspection) inspectionProfile.getUnwrappedTool(
-					DependsOnGroupsInspection.SHORT_NAME, myElement);
+			DependsOnGroupsInspectionState inspection = (DependsOnGroupsInspectionState) inspectionProfile.getToolState(DependsOnGroupsInspection.SHORT_NAME, myElement);
 
 			for(String groupName : inspection.groups)
 			{
