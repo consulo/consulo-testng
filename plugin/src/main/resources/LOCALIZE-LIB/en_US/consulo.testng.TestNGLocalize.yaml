@@ -1,0 +1,4 @@
+testng.configuration.name:
+  text: TestNG
+testng.configuration.description:
+  text: TestNG Configuration

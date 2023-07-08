@@ -10,14 +10,17 @@ import consulo.annotation.component.ExtensionImpl;
 import consulo.component.extension.ExtensionInstance;
 import consulo.execution.RunManager;
 import consulo.execution.action.Location;
-import consulo.execution.configuration.*;
+import consulo.execution.configuration.ConfigurationType;
+import consulo.execution.configuration.ModuleBasedConfiguration;
+import consulo.execution.configuration.RunConfiguration;
+import consulo.execution.configuration.SimpleConfigurationType;
 import consulo.java.language.module.extension.JavaModuleExtension;
 import consulo.language.psi.PsiElement;
 import consulo.module.Module;
 import consulo.module.extension.ModuleExtensionHelper;
 import consulo.project.Project;
 import consulo.testng.icon.TestNGIconGroup;
-import consulo.ui.image.Image;
+import consulo.testng.localize.TestNGLocalize;
 import consulo.util.lang.Comparing;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
 @ExtensionImpl
-public class TestNGConfigurationType implements ConfigurationType
+public class TestNGConfigurationType extends SimpleConfigurationType
 {
 	private static final Supplier<TestNGConfigurationType> INSTANCE = ExtensionInstance.from(ConfigurationType.class);
 
@@ -35,31 +38,9 @@ public class TestNGConfigurationType implements ConfigurationType
 		return INSTANCE.get();
 	}
 
-	private final ConfigurationFactory myFactory;
-
 	public TestNGConfigurationType()
 	{
-		myFactory = new ConfigurationFactory(this)
-		{
-			@NotNull
-			@Override
-			public RunConfiguration createTemplateConfiguration(Project project)
-			{
-				return new TestNGConfiguration("", project, this);
-			}
-
-			@Override
-			public boolean isApplicable(@NotNull Project project)
-			{
-				return ModuleExtensionHelper.getInstance(project).hasModuleExtension(JavaModuleExtension.class);
-			}
-
-			@Override
-			public void onNewConfigurationCreated(@NotNull RunConfiguration configuration)
-			{
-				((ModuleBasedConfiguration) configuration).onNewConfigurationCreated();
-			}
-		};
+		super("TestNG", TestNGLocalize.testngConfigurationName(), TestNGLocalize.testngConfigurationDescription(), TestNGIconGroup.testng());
 	}
 
 	public boolean isConfigurationByLocation(RunConfiguration runConfiguration, Location location)
@@ -82,7 +63,7 @@ public class TestNGConfigurationType implements ConfigurationType
 					return true;
 				}
 
-				final Module predefinedModule = ((TestNGConfiguration) RunManager.getInstance(location.getProject()).getConfigurationTemplate(myFactory).getConfiguration()).getConfigurationModule()
+				final Module predefinedModule = ((TestNGConfiguration) RunManager.getInstance(location.getProject()).getConfigurationTemplate(this).getConfiguration()).getConfigurationModule()
 						.getModule();
 				return Comparing.equal(predefinedModule, configurationModule);
 
@@ -94,34 +75,22 @@ public class TestNGConfigurationType implements ConfigurationType
 		}
 	}
 
-	@Override
-	public String getDisplayName()
-	{
-		return "TestNG";
-	}
-
-	@Override
-	public String getConfigurationTypeDescription()
-	{
-		return "TestNG Configuration";
-	}
-
-	@Override
-	public Image getIcon()
-	{
-		return TestNGIconGroup.testng();
-	}
-
-	@Override
-	public ConfigurationFactory[] getConfigurationFactories()
-	{
-		return new ConfigurationFactory[]{myFactory};
-	}
-
-	@Override
 	@NotNull
-	public String getId()
+	@Override
+	public RunConfiguration createTemplateConfiguration(Project project)
 	{
-		return "TestNG";
+		return new TestNGConfiguration("", project, this);
+	}
+
+	@Override
+	public boolean isApplicable(@NotNull Project project)
+	{
+		return ModuleExtensionHelper.getInstance(project).hasModuleExtension(JavaModuleExtension.class);
+	}
+
+	@Override
+	public void onNewConfigurationCreated(@NotNull RunConfiguration configuration)
+	{
+		((ModuleBasedConfiguration) configuration).onNewConfigurationCreated();
 	}
 }
