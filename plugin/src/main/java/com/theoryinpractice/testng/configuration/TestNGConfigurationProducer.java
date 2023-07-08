@@ -27,12 +27,6 @@ public abstract class TestNGConfigurationProducer extends AbstractJavaTestConfig
 		super(configurationType);
 	}
 
-	@SuppressWarnings("unused") //used in kotlin
-	public TestNGConfigurationProducer()
-	{
-		super(TestNGConfigurationType.getInstance());
-	}
-
 	public static String getInvocationNumber(String str)
 	{
 		return StringUtil.trimEnd(StringUtil.trimStart(str, "["), "]");
