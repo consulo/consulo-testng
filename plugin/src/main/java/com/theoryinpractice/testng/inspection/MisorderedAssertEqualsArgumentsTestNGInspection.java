@@ -19,6 +19,7 @@ import com.intellij.java.analysis.impl.codeInspection.BaseJavaLocalInspectionToo
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.InheritanceUtil;
 import consulo.annotation.component.ExtensionImpl;
+import consulo.language.editor.inspection.LocalInspectionToolSession;
 import consulo.language.editor.inspection.LocalQuickFix;
 import consulo.language.editor.inspection.ProblemDescriptor;
 import consulo.language.editor.inspection.ProblemsHolder;
@@ -143,9 +144,9 @@ public class MisorderedAssertEqualsArgumentsTestNGInspection extends BaseJavaLoc
 		return "Misordered 'assertEquals()' arguments";
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
-	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly)
+	public PsiElementVisitor buildVisitorImpl(@Nonnull ProblemsHolder holder, boolean isOnTheFly, LocalInspectionToolSession session, Object o)
 	{
 		return new MisorderedAssertEqualsParametersVisitor(holder);
 	}

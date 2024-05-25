@@ -24,6 +24,7 @@ import com.intellij.java.language.psi.javadoc.PsiDocToken;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.application.CommonBundle;
+import consulo.language.editor.inspection.LocalInspectionToolSession;
 import consulo.language.editor.inspection.LocalQuickFix;
 import consulo.language.editor.inspection.ProblemDescriptor;
 import consulo.language.editor.inspection.ProblemsHolder;
@@ -36,6 +37,7 @@ import consulo.logging.Logger;
 import consulo.project.Project;
 import consulo.ui.ex.awt.Messages;
 import consulo.util.lang.StringUtil;
+import jakarta.annotation.Nonnull;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +80,7 @@ public class ConvertJavadocInspection extends BaseJavaLocalInspectionTool
 	}
 
 	@NotNull
-	public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, final boolean isOnTheFly)
+	public PsiElementVisitor buildVisitorImpl(@Nonnull ProblemsHolder holder, boolean isOnTheFly, LocalInspectionToolSession session, Object o)
 	{
 		return new JavaElementVisitor()
 		{

@@ -21,6 +21,7 @@ import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.InheritanceUtil;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.java.language.module.util.JavaClassNames;
+import consulo.language.editor.inspection.LocalInspectionToolSession;
 import consulo.language.editor.inspection.ProblemsHolder;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiElementVisitor;
@@ -62,7 +63,7 @@ public class ExpectedExceptionNeverThrownTestNGInspection extends BaseJavaLocalI
 
 	@NotNull
 	@Override
-	public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly)
+	public PsiElementVisitor buildVisitorImpl(@Nonnull ProblemsHolder holder, boolean isOnTheFly, LocalInspectionToolSession session, Object o)
 	{
 		return new ExpectedExceptionNeverThrownVisitor(holder);
 	}
