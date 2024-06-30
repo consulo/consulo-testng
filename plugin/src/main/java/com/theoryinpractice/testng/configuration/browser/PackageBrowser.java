@@ -15,10 +15,13 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import com.intellij.java.language.impl.codeInsight.PackageChooserDialog;
+import com.intellij.java.language.impl.ui.PackageChooser;
+import com.intellij.java.language.impl.ui.PackageChooserFactory;
 import com.intellij.java.language.psi.PsiJavaPackage;
 import consulo.execution.ui.awt.BrowseModuleValueActionListener;
 import consulo.project.Project;
+
+import java.util.List;
 
 /**
  * @author Hani Suleiman
@@ -33,9 +36,10 @@ public class PackageBrowser extends BrowseModuleValueActionListener
 	@Override
 	protected String showDialog()
 	{
-		PackageChooserDialog chooser = new PackageChooserDialog("Choose Package", getProject());
-		chooser.show();
-		PsiJavaPackage psiPackage = chooser.getSelectedPackage();
+		PackageChooser packageChooser = getProject().getInstance(PackageChooserFactory.class).create();
+
+		List<PsiJavaPackage> packages = packageChooser.showAndSelect();
+		PsiJavaPackage psiPackage = packages == null || packages.isEmpty() ? null : packages.getFirst();
 		String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
 		return packageName;
 	}
