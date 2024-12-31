@@ -24,7 +24,7 @@ import consulo.testng.localize.TestNGLocalize;
 import consulo.util.lang.Comparing;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.function.Supplier;
 
 @ExtensionImpl
