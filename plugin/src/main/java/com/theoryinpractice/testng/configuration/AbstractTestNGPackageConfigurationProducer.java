@@ -25,41 +25,35 @@ import consulo.execution.action.ConfigurationContext;
 import consulo.execution.action.Location;
 import consulo.execution.configuration.ConfigurationType;
 import consulo.language.psi.PsiElement;
-import consulo.util.lang.ref.Ref;
+import consulo.util.lang.ref.SimpleReference;
 
-public abstract class AbstractTestNGPackageConfigurationProducer extends TestNGConfigurationProducer
-{
+public abstract class AbstractTestNGPackageConfigurationProducer extends TestNGConfigurationProducer {
 
-	protected AbstractTestNGPackageConfigurationProducer(ConfigurationType configurationType)
-	{
-		super(configurationType);
-	}
+    protected AbstractTestNGPackageConfigurationProducer(ConfigurationType configurationType) {
+        super(configurationType);
+    }
 
-	@Override
-	protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, Ref<PsiElement> sourceElement)
-	{
-		final PsiElement element = context.getPsiLocation();
-		PsiJavaPackage aPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
-		if(aPackage == null)
-		{
-			return false;
-		}
-		final Location location = context.getLocation();
-		if(location == null)
-		{
-			return false;
-		}
-		if(!LocationUtil.isJarAttached(location, aPackage, TestNGUtil.TEST_ANNOTATION_FQN))
-		{
-			return false;
-		}
-		final TestData data = configuration.data;
-		data.PACKAGE_NAME = aPackage.getQualifiedName();
-		data.TEST_OBJECT = TestType.PACKAGE.getType();
-		data.setScope(setupPackageConfiguration(context, configuration, data.getScope()));
-		configuration.setGeneratedName();
-		sourceElement.set(aPackage);
-		return true;
-	}
+    @Override
+    protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, SimpleReference<PsiElement> sourceElement) {
+        final PsiElement element = context.getPsiLocation();
+        PsiJavaPackage aPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
+        if (aPackage == null) {
+            return false;
+        }
+        final Location location = context.getLocation();
+        if (location == null) {
+            return false;
+        }
+        if (!LocationUtil.isJarAttached(location, aPackage, TestNGUtil.TEST_ANNOTATION_FQN)) {
+            return false;
+        }
+        final TestData data = configuration.data;
+        data.PACKAGE_NAME = aPackage.getQualifiedName();
+        data.TEST_OBJECT = TestType.PACKAGE.getType();
+        data.setScope(setupPackageConfiguration(context, configuration, data.getScope()));
+        configuration.setGeneratedName();
+        sourceElement.set(aPackage);
+        return true;
+    }
 
 }
