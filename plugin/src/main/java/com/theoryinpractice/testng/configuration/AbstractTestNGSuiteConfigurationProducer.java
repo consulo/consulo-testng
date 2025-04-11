@@ -24,44 +24,38 @@ import consulo.execution.configuration.ConfigurationType;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiFile;
 import consulo.module.Module;
-import consulo.util.lang.ref.Ref;
+import consulo.util.lang.ref.SimpleReference;
 import consulo.virtualFileSystem.VirtualFile;
 
-public abstract class AbstractTestNGSuiteConfigurationProducer extends TestNGConfigurationProducer
-{
+public abstract class AbstractTestNGSuiteConfigurationProducer extends TestNGConfigurationProducer {
 
-	public AbstractTestNGSuiteConfigurationProducer(ConfigurationType configurationType)
-	{
-		super(configurationType);
-	}
+    public AbstractTestNGSuiteConfigurationProducer(ConfigurationType configurationType) {
+        super(configurationType);
+    }
 
-	@Override
-	protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, Ref<PsiElement> sourceElement)
-	{
-		final PsiElement element = context.getPsiLocation();
-		final PsiFile containingFile = element != null ? element.getContainingFile() : null;
-		if(containingFile == null)
-		{
-			return false;
-		}
-		final VirtualFile virtualFile = containingFile.getVirtualFile();
-		if(virtualFile == null || !virtualFile.isValid())
-		{
-			return false;
-		}
-		if(!TestNGUtil.isTestngXML(virtualFile))
-		{
-			return false;
-		}
-		RunnerAndConfigurationSettings settings = cloneTemplateConfiguration(context);
-		setupConfigurationModule(context, configuration);
-		final Module originalModule = configuration.getConfigurationModule().getModule();
-		configuration.getPersistantData().SUITE_NAME = virtualFile.getPath();
-		configuration.getPersistantData().TEST_OBJECT = TestType.SUITE.getType();
-		configuration.restoreOriginalModule(originalModule);
-		configuration.setGeneratedName();
-		settings.setName(configuration.getName());
-		sourceElement.set(containingFile);
-		return true;
-	}
+    @Override
+    protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, SimpleReference<PsiElement> sourceElement) {
+        final PsiElement element = context.getPsiLocation();
+        final PsiFile containingFile = element != null ? element.getContainingFile() : null;
+        if (containingFile == null) {
+            return false;
+        }
+        final VirtualFile virtualFile = containingFile.getVirtualFile();
+        if (virtualFile == null || !virtualFile.isValid()) {
+            return false;
+        }
+        if (!TestNGUtil.isTestngXML(virtualFile)) {
+            return false;
+        }
+        RunnerAndConfigurationSettings settings = cloneTemplateConfiguration(context);
+        setupConfigurationModule(context, configuration);
+        final Module originalModule = configuration.getConfigurationModule().getModule();
+        configuration.getPersistantData().SUITE_NAME = virtualFile.getPath();
+        configuration.getPersistantData().TEST_OBJECT = TestType.SUITE.getType();
+        configuration.restoreOriginalModule(originalModule);
+        configuration.setGeneratedName();
+        settings.setName(configuration.getName());
+        sourceElement.set(containingFile);
+        return true;
+    }
 }

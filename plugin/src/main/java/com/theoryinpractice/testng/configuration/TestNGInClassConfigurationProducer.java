@@ -16,49 +16,44 @@
 package com.theoryinpractice.testng.configuration;
 
 import com.intellij.java.execution.impl.testframework.AbstractInClassConfigurationProducer;
+import consulo.annotation.access.RequiredReadAction;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.execution.action.ConfigurationContext;
 import consulo.execution.action.ConfigurationFromContext;
 import consulo.execution.configuration.ConfigurationType;
 import consulo.language.psi.PsiElement;
-import consulo.util.lang.ref.Ref;
+import consulo.util.lang.ref.SimpleReference;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @ExtensionImpl
-public class TestNGInClassConfigurationProducer extends TestNGConfigurationProducer
-{
-	private TestNGInClassConfigurationProducerDelegate myDelegate = new TestNGInClassConfigurationProducerDelegate(TestNGConfigurationType.getInstance());
+public class TestNGInClassConfigurationProducer extends TestNGConfigurationProducer {
+    private TestNGInClassConfigurationProducerDelegate myDelegate = new TestNGInClassConfigurationProducerDelegate(TestNGConfigurationType.getInstance());
 
-	@Inject
-	protected TestNGInClassConfigurationProducer()
-	{
-		super(TestNGConfigurationType.getInstance());
-	}
+    @Inject
+    protected TestNGInClassConfigurationProducer() {
+        super(TestNGConfigurationType.getInstance());
+    }
 
-	@Override
-	public void onFirstRun(@NotNull ConfigurationFromContext configuration, @NotNull ConfigurationContext fromContext, @NotNull Runnable performRunnable)
-	{
-		myDelegate.onFirstRun(configuration, fromContext, performRunnable);
-	}
+    @Override
+    public void onFirstRun(@NotNull ConfigurationFromContext configuration, @NotNull ConfigurationContext fromContext, @NotNull Runnable performRunnable) {
+        myDelegate.onFirstRun(configuration, fromContext, performRunnable);
+    }
 
-	@Override
-	protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, Ref<PsiElement> sourceElement)
-	{
-		return myDelegate.setupConfigurationFromContext(configuration, context, sourceElement);
-	}
+    @Override
+    protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, SimpleReference<PsiElement> sourceElement) {
+        return myDelegate.setupConfigurationFromContext(configuration, context, sourceElement);
+    }
 
-	private static class TestNGInClassConfigurationProducerDelegate extends AbstractInClassConfigurationProducer<TestNGConfiguration>
-	{
-		protected TestNGInClassConfigurationProducerDelegate(ConfigurationType configurationType)
-		{
-			super(configurationType);
-		}
+    private static class TestNGInClassConfigurationProducerDelegate extends AbstractInClassConfigurationProducer<TestNGConfiguration> {
+        protected TestNGInClassConfigurationProducerDelegate(ConfigurationType configurationType) {
+            super(configurationType);
+        }
 
-		@Override
-		protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, Ref<PsiElement> sourceElement)
-		{
-			return super.setupConfigurationFromContext(configuration, context, sourceElement);
-		}
-	}
+        @RequiredReadAction
+        @Override
+        protected boolean setupConfigurationFromContext(TestNGConfiguration configuration, ConfigurationContext context, SimpleReference<PsiElement> sourceElement) {
+            return super.setupConfigurationFromContext(configuration, context, sourceElement);
+        }
+    }
 }
