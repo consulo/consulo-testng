@@ -32,36 +32,33 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.DataProvider;
 
 @ExtensionImpl
-public class DataProviderSearcher extends QueryExecutorBase<PsiReference, MethodReferencesSearch.SearchParameters> implements MethodReferencesSearchExecutor
-{
-	public DataProviderSearcher()
-	{
-		super(true);
-	}
+public class DataProviderSearcher extends QueryExecutorBase<PsiReference, MethodReferencesSearch.SearchParameters>
+    implements MethodReferencesSearchExecutor {
+    public DataProviderSearcher() {
+        super(true);
+    }
 
-	@Override
-	public void processQuery(@NotNull MethodReferencesSearch.SearchParameters queryParameters, @NotNull Processor<? super PsiReference> consumer)
-	{
-		final PsiMethod method = queryParameters.getMethod();
+    @Override
+    public void processQuery(
+        @NotNull MethodReferencesSearch.SearchParameters queryParameters,
+        @NotNull Processor<? super PsiReference> consumer
+    ) {
+        final PsiMethod method = queryParameters.getMethod();
 
-		final PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, DataProvider.class.getName());
-		if(annotation == null)
-		{
-			return;
-		}
-		PsiNameValuePair[] values = annotation.getParameterList().getAttributes();
-		for(PsiNameValuePair value : values)
-		{
-			if("name".equals(value.getName()))
-			{
-				final PsiAnnotationMemberValue dataProviderMethodName = value.getValue();
-				if(dataProviderMethodName != null)
-				{
-					final String providerName = StringUtil.unquoteString(dataProviderMethodName.getText());
-					queryParameters.getOptimizer().searchWord(providerName, queryParameters.getScope(), UsageSearchContext.IN_STRINGS, true, method);
-				}
-			}
-		}
-	}
-
+        final PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, DataProvider.class.getName());
+        if (annotation == null) {
+            return;
+        }
+        PsiNameValuePair[] values = annotation.getParameterList().getAttributes();
+        for (PsiNameValuePair value : values) {
+            if ("name".equals(value.getName())) {
+                final PsiAnnotationMemberValue dataProviderMethodName = value.getValue();
+                if (dataProviderMethodName != null) {
+                    final String providerName = StringUtil.unquoteString(dataProviderMethodName.getText());
+                    queryParameters.getOptimizer()
+                        .searchWord(providerName, queryParameters.getScope(), UsageSearchContext.IN_STRINGS, true, method);
+                }
+            }
+        }
+    }
 }
