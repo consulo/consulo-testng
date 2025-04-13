@@ -22,14 +22,18 @@ import com.intellij.java.language.psi.PsiAnnotation;
 import com.intellij.java.language.psi.PsiAnnotationMemberValue;
 import com.intellij.java.language.psi.PsiMethod;
 import com.intellij.java.language.psi.PsiNameValuePair;
+import consulo.annotation.access.RequiredReadAction;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.application.util.function.Processor;
 import consulo.language.psi.PsiReference;
 import consulo.language.psi.search.UsageSearchContext;
 import consulo.project.util.query.QueryExecutorBase;
 import consulo.util.lang.StringUtil;
+import jakarta.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.DataProvider;
+
+import java.util.function.Predicate;
 
 @ExtensionImpl
 public class DataProviderSearcher extends QueryExecutorBase<PsiReference, MethodReferencesSearch.SearchParameters>
@@ -39,22 +43,23 @@ public class DataProviderSearcher extends QueryExecutorBase<PsiReference, Method
     }
 
     @Override
+    @RequiredReadAction
     public void processQuery(
-        @NotNull MethodReferencesSearch.SearchParameters queryParameters,
-        @NotNull Processor<? super PsiReference> consumer
+        MethodReferencesSearch.SearchParameters queryParameters,
+        @Nonnull Predicate<? super PsiReference> consumer
     ) {
-        final PsiMethod method = queryParameters.getMethod();
+        PsiMethod method = queryParameters.getMethod();
 
-        final PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, DataProvider.class.getName());
+        PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, DataProvider.class.getName());
         if (annotation == null) {
             return;
         }
         PsiNameValuePair[] values = annotation.getParameterList().getAttributes();
         for (PsiNameValuePair value : values) {
             if ("name".equals(value.getName())) {
-                final PsiAnnotationMemberValue dataProviderMethodName = value.getValue();
+                PsiAnnotationMemberValue dataProviderMethodName = value.getValue();
                 if (dataProviderMethodName != null) {
-                    final String providerName = StringUtil.unquoteString(dataProviderMethodName.getText());
+                    String providerName = StringUtil.unquoteString(dataProviderMethodName.getText());
                     queryParameters.getOptimizer()
                         .searchWord(providerName, queryParameters.getScope(), UsageSearchContext.IN_STRINGS, true, method);
                 }
