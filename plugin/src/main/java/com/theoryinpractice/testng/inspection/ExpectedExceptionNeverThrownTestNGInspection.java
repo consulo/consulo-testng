@@ -20,17 +20,16 @@ import com.intellij.java.language.codeInsight.AnnotationUtil;
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.InheritanceUtil;
 import consulo.annotation.component.ExtensionImpl;
-import consulo.java.language.module.util.JavaClassNames;
 import consulo.language.editor.inspection.LocalInspectionToolSession;
 import consulo.language.editor.inspection.ProblemsHolder;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiElementVisitor;
 import consulo.project.Project;
 import consulo.project.content.scope.ProjectScopes;
+import jakarta.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import jakarta.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -116,7 +115,7 @@ public class ExpectedExceptionNeverThrownTestNGInspection extends BaseJavaLocalI
 			}
 			final PsiClassType classType = (PsiClassType) type;
 			final PsiClass aClass = classType.resolve();
-			if(InheritanceUtil.isInheritor(aClass, JavaClassNames.JAVA_LANG_RUNTIME_EXCEPTION))
+			if(InheritanceUtil.isInheritor(aClass, CommonClassNames.JAVA_LANG_RUNTIME_EXCEPTION))
 			{
 				return;
 			}
@@ -248,13 +247,13 @@ public class ExpectedExceptionNeverThrownTestNGInspection extends BaseJavaLocalI
 		@Nullable
 		private static PsiMethod findAutoCloseableCloseMethod(@Nullable PsiClass aClass)
 		{
-			if(aClass == null || !InheritanceUtil.isInheritor(aClass, JavaClassNames.JAVA_LANG_AUTO_CLOSEABLE))
+			if(aClass == null || !InheritanceUtil.isInheritor(aClass, CommonClassNames.JAVA_LANG_AUTO_CLOSEABLE))
 			{
 				return null;
 			}
 			final Project project = aClass.getProject();
 			final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-			final PsiClass autoCloseable = facade.findClass(JavaClassNames.JAVA_LANG_AUTO_CLOSEABLE, (consulo.language.psi.scope.GlobalSearchScope) ProjectScopes.getLibrariesScope(project));
+			final PsiClass autoCloseable = facade.findClass(CommonClassNames.JAVA_LANG_AUTO_CLOSEABLE, (consulo.language.psi.scope.GlobalSearchScope) ProjectScopes.getLibrariesScope(project));
 			if(autoCloseable == null)
 			{
 				return null;

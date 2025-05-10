@@ -20,7 +20,6 @@ import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.InheritanceUtil;
 import com.intellij.java.language.psi.util.TypeConversionUtil;
 import consulo.annotation.component.ExtensionImpl;
-import consulo.java.language.module.util.JavaClassNames;
 import consulo.language.editor.inspection.LocalInspectionToolSession;
 import consulo.language.editor.inspection.ProblemsHolder;
 import consulo.language.psi.PsiElement;
@@ -28,10 +27,9 @@ import consulo.language.psi.PsiElementVisitor;
 import consulo.language.psi.PsiManager;
 import consulo.language.psi.scope.GlobalSearchScope;
 import consulo.util.lang.StringUtil;
+import jakarta.annotation.Nonnull;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import jakarta.annotation.Nonnull;
 
 /**
  * @author Bas Leijdekkers
@@ -118,7 +116,7 @@ public class AssertEqualsBetweenInconvertibleTypesTestNGInspection extends BaseJ
 			final PsiExpression expression2;
 			final PsiType parameterType1;
 			final PsiType parameterType2;
-			if(junit && firstParameterType.equalsToText(JavaClassNames.JAVA_LANG_STRING))
+			if(junit && firstParameterType.equalsToText(CommonClassNames.JAVA_LANG_STRING))
 			{
 				if(arguments.length < 3)
 				{
