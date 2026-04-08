@@ -49,9 +49,9 @@ import consulo.project.Project;
 import consulo.virtualFileSystem.LocalFileSystem;
 import consulo.virtualFileSystem.VirtualFile;
 import consulo.xml.ide.highlighter.XmlFileType;
-import consulo.xml.psi.xml.XmlAttribute;
-import consulo.xml.psi.xml.XmlFile;
-import consulo.xml.psi.xml.XmlTag;
+import consulo.xml.language.psi.XmlAttribute;
+import consulo.xml.language.psi.XmlFile;
+import consulo.xml.language.psi.XmlTag;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 

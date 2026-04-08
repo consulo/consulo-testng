@@ -25,7 +25,7 @@ import consulo.language.psi.PsiFile;
 import consulo.language.psi.PsiUtilCore;
 import consulo.util.lang.Comparing;
 import consulo.virtualFileSystem.VirtualFile;
-import consulo.xml.psi.xml.XmlFile;
+import consulo.xml.language.psi.XmlFile;
 import org.testng.xml.Parser;
 
 import java.util.List;

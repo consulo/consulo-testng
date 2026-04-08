@@ -31,8 +31,8 @@ import consulo.language.psi.search.PsiSearchHelper;
 import consulo.language.psi.util.PsiTreeUtil;
 import consulo.project.Project;
 import consulo.util.lang.StringUtil;
-import consulo.xml.psi.xml.XmlAttribute;
-import consulo.xml.psi.xml.XmlTag;
+import consulo.xml.language.psi.XmlAttribute;
+import consulo.xml.language.psi.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
