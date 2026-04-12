@@ -22,11 +22,10 @@ import consulo.language.Language;
 import consulo.language.psi.PsiReferenceContributor;
 import consulo.language.psi.PsiReferenceRegistrar;
 import consulo.xml.language.XMLLanguage;
-import consulo.xml.patterns.XmlAttributeValuePattern;
-
+import consulo.xml.language.psi.pattern.XmlAttributeValuePattern;
 import jakarta.annotation.Nonnull;
 
-import static consulo.xml.patterns.XmlPatterns.*;
+import static consulo.xml.language.psi.pattern.XmlPatterns.*;
 
 /**
  * User: anna

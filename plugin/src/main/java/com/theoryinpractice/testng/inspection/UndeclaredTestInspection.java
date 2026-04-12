@@ -48,7 +48,7 @@ import consulo.logging.Logger;
 import consulo.project.Project;
 import consulo.virtualFileSystem.LocalFileSystem;
 import consulo.virtualFileSystem.VirtualFile;
-import consulo.xml.ide.highlighter.XmlFileType;
+import consulo.xml.language.XmlFileType;
 import consulo.xml.language.psi.XmlAttribute;
 import consulo.xml.language.psi.XmlFile;
 import consulo.xml.language.psi.XmlTag;
