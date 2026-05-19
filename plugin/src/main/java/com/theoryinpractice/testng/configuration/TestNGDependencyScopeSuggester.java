@@ -31,17 +31,14 @@ import java.util.Arrays;
  * @author nik
  */
 @ExtensionImpl
-public class TestNGDependencyScopeSuggester extends LibraryDependencyScopeSuggester
-{
-	@Nullable
-	@Override
-	public DependencyScope getDefaultDependencyScope(@NotNull Library library)
-	{
-		VirtualFile[] files = library.getFiles(BinariesOrderRootType.getInstance());
-		if(files.length == 1 && LibrariesHelper.getInstance().isClassAvailable(Arrays.stream(files).map(VirtualFile::getUrl).toArray(String[]::new), "org.testng.annotations.Test"))
-		{
-			return DependencyScope.TEST;
-		}
-		return null;
-	}
+public class TestNGDependencyScopeSuggester extends LibraryDependencyScopeSuggester {
+    @Nullable
+    @Override
+    public DependencyScope getDefaultDependencyScope(@NotNull Library library) {
+        VirtualFile[] files = library.getFiles(BinariesOrderRootType.ID);
+        if (files.length == 1 && LibrariesHelper.getInstance().isClassAvailable(Arrays.stream(files).map(VirtualFile::getUrl).toArray(String[]::new), "org.testng.annotations.Test")) {
+            return DependencyScope.TEST;
+        }
+        return null;
+    }
 }
