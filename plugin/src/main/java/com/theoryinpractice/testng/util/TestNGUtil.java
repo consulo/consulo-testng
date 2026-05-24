@@ -9,6 +9,7 @@ import com.intellij.java.language.psi.javadoc.PsiDocTag;
 import com.intellij.java.language.psi.util.PsiClassUtil;
 import com.intellij.java.language.psi.util.PsiUtil;
 import com.theoryinpractice.testng.model.TestClassFilter;
+import consulo.annotation.access.RequiredReadAction;
 import consulo.application.ApplicationManager;
 import consulo.application.ReadAction;
 import consulo.application.progress.ProgressIndicator;
@@ -443,9 +444,9 @@ public class TestNGUtil {
         return holder[0];
     }
 
+    @RequiredReadAction
     public static PsiAnnotation[] getTestNGAnnotations(PsiElement element) {
-        PsiElementProcessor.CollectFilteredElements<PsiAnnotation> processor = new PsiElementProcessor.CollectFilteredElements<>(e ->
-        {
+        PsiElementProcessor.CollectFilteredElements<PsiAnnotation> processor = new PsiElementProcessor.CollectFilteredElements<>(e -> {
             if (e instanceof PsiAnnotation) {
                 String name = ((PsiAnnotation) e).getQualifiedName();
                 if (name != null && name.startsWith("org.testng.annotations")) {
@@ -454,7 +455,7 @@ public class TestNGUtil {
             }
             return false;
         });
-        PsiTreeUtil.processElements(element, processor);
+        PsiTreeUtil.processElements(element, PsiAnnotation.class, processor);
         return processor.toArray(PsiAnnotation.EMPTY_ARRAY);
     }
 
