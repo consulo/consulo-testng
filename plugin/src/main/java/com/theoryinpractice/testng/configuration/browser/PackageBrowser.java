@@ -34,7 +34,7 @@ public class PackageBrowser extends BrowseModuleValueActionListener
 	}
 
 	@Override
-	protected String showDialog()
+	public String showDialog()
 	{
 		PackageChooser packageChooser = getProject().getInstance(PackageChooserFactory.class).create();
 

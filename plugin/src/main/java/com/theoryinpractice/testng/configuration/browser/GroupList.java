@@ -17,6 +17,7 @@ package com.theoryinpractice.testng.configuration.browser;
 
 import com.intellij.java.language.psi.PsiClass;
 import com.theoryinpractice.testng.util.TestNGUtil;
+import consulo.testng.localize.TestNGLocalize;
 import consulo.ui.ex.awt.*;
 import consulo.util.collection.ArrayUtil;
 
@@ -54,7 +55,7 @@ public class GroupList extends JPanel
 		DialogBuilder builder = new DialogBuilder(component);
 		builder.setCenterPanel(groupList);
 		builder.setPreferredFocusComponent(groupList.list);
-		builder.setTitle("Choose Test Group");
+		builder.setTitle(TestNGLocalize.testngChooseTestGroup());
 		return builder.show() != 0 ? null : groupList.getSelected();
 	}
 }

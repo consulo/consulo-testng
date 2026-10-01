@@ -21,7 +21,6 @@ import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGConsoleProperties;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import com.theoryinpractice.testng.model.TestType;
-import consulo.execution.ExecutionBundle;
 import consulo.execution.RuntimeConfigurationException;
 import consulo.execution.action.Location;
 import consulo.execution.action.PsiLocation;
@@ -33,6 +32,7 @@ import consulo.execution.configuration.log.ui.LogConfigurationPanel;
 import consulo.execution.configuration.ui.SettingsEditor;
 import consulo.execution.configuration.ui.SettingsEditorGroup;
 import consulo.execution.executor.Executor;
+import consulo.execution.localize.ExecutionLocalize;
 import consulo.execution.runner.ExecutionEnvironment;
 import consulo.execution.test.TestSearchScope;
 import consulo.execution.test.sm.runner.SMTRunnerConsoleProperties;
@@ -348,9 +348,9 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 	public SettingsEditor<? extends RunConfiguration> getConfigurationEditor()
 	{
 		SettingsEditorGroup<TestNGConfiguration> group = new SettingsEditorGroup<>();
-		group.addEditor(ExecutionBundle.message("run.configuration.configuration.tab.title"), new TestNGConfigurationEditor<>(getProject()));
+		group.addEditor(ExecutionLocalize.runConfigurationConfigurationTabTitle(), new TestNGConfigurationEditor<>(getProject()));
 		JavaRunConfigurationExtensionManager.getInstance().appendEditors(this, group);
-		group.addEditor(ExecutionBundle.message("logs.tab.title"), new LogConfigurationPanel<>());
+		group.addEditor(ExecutionLocalize.logsTabTitle(), new LogConfigurationPanel<>());
 		return group;
 	}
 

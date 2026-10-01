@@ -15,53 +15,57 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
+import com.intellij.java.execution.impl.ui.BaseConfigurationModuleSelector;
 import com.intellij.java.language.psi.PsiClass;
-import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
 import com.theoryinpractice.testng.model.TestClassFilter;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.execution.ui.awt.BrowseModuleValueActionListener;
 import consulo.language.psi.scope.GlobalSearchScope;
 import consulo.module.Module;
 import consulo.project.Project;
+import consulo.testng.localize.TestNGLocalize;
 import consulo.ui.ex.awt.Messages;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * @author Hani Suleiman
  */
-public class GroupBrowser extends BrowseModuleValueActionListener
-{
-	private final TestNGConfigurationEditor editor;
+public class GroupBrowser extends BrowseModuleValueActionListener {
+    private final BaseConfigurationModuleSelector moduleSelector;
 
-	public GroupBrowser(Project project, TestNGConfigurationEditor editor)
-	{
-		super(project);
-		this.editor = editor;
-	}
+    public GroupBrowser(Project project, BaseConfigurationModuleSelector moduleSelector) {
+        super(project);
+        this.moduleSelector = moduleSelector;
+    }
 
-	@Nullable
-	@Override
-	protected String showDialog()
-	{
-		TestClassFilter filter;
-		Module module = editor.getModuleSelector().getModule();
-		if(module == null)
-		{
-			filter = new TestClassFilter(GlobalSearchScope.projectScope(getProject()), getProject(), false);
-		}
-		else
-		{
-			filter = new TestClassFilter(GlobalSearchScope.moduleScope(module), getProject(), false);
-		}
-		PsiClass[] classes = TestNGUtil.getAllTestClasses(filter, true);
-		if(classes == null || classes.length == 0)
-		{
-			Messages.showMessageDialog(getField(), "No tests found in project", "Cannot Browse Groups", Messages.getInformationIcon());
-			return null;
-		}
-		else
-		{
-			return GroupList.showDialog(classes, getField());
-		}
-	}
+    @Override
+    protected @Nullable String showDialog() {
+        return chooseGroup(getField());
+    }
+
+    public @Nullable String chooseGroup(JComponent parent) {
+        TestClassFilter filter;
+        Module module = moduleSelector.getModule();
+        if (module == null) {
+            filter = new TestClassFilter(GlobalSearchScope.projectScope(getProject()), getProject(), false);
+        }
+        else {
+            filter = new TestClassFilter(GlobalSearchScope.moduleScope(module), getProject(), false);
+        }
+        PsiClass[] classes = TestNGUtil.getAllTestClasses(filter, true);
+        if (classes == null || classes.length == 0) {
+            Messages.showMessageDialog(
+                parent,
+                TestNGLocalize.testngGroupBrowserNoTestsFoundInProject().get(),
+                TestNGLocalize.testngGroupBrowserCannotBrowseGroups().get(),
+                Messages.getInformationIcon()
+            );
+            return null;
+        }
+        else {
+            return GroupList.showDialog(classes, parent);
+        }
+    }
 }

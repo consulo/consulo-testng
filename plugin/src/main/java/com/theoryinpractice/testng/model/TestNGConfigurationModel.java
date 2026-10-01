@@ -16,264 +16,174 @@
 package com.theoryinpractice.testng.model;
 
 import com.intellij.java.execution.JavaExecutionUtil;
-import com.intellij.java.execution.impl.junit.JUnitUtil;
-import com.intellij.java.language.psi.PsiClass;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
-import consulo.language.editor.WriteCommandAction;
 import consulo.logging.Logger;
-import consulo.module.Module;
 import consulo.project.Project;
+import consulo.ui.ValueComponent;
+import consulo.ui.annotation.RequiredUIAccess;
 import consulo.util.lang.StringUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.PlainDocument;
 import java.util.LinkedHashSet;
 
 /**
  * @author Hani Suleiman
  */
-public class TestNGConfigurationModel
-{
-	private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
+public class TestNGConfigurationModel {
+    private static final Logger LOGGER = Logger.getInstance("TestNG Runner");
 
-	private TestNGConfigurationEditor editor;
-	private TestType type;
-	private final Object[] typeDocuments = new Object[6];
-	private final Document propertiesFileDocument = new PlainDocument();
-	private final Document outputDirectoryDocument = new PlainDocument();
-	private final Project project;
+    private @Nullable TestNGConfigurationEditor<?> myEditor;
+    private TestType myType;
+    @SuppressWarnings("unchecked")
+    private final ValueComponent<String>[] myTypeFields = new ValueComponent[6];
+    private @Nullable ValueComponent<String> myPropertiesFileField;
+    private @Nullable ValueComponent<String> myOutputDirectoryField;
+    private final Project myProject;
 
-	public TestNGConfigurationModel(Project project)
-	{
-		type = TestType.CLASS;
-		for(int i = 3; i < typeDocuments.length; i++)
-		{
-			typeDocuments[i] = new PlainDocument();
-		}
+    public TestNGConfigurationModel(Project project) {
+        myType = TestType.CLASS;
+        myProject = project;
+    }
 
-		this.project = project;
-	}
+    public void setTypeField(TestType type, ValueComponent<String> field) {
+        myTypeFields[type.getValue()] = field;
+    }
 
-	public void setDocument(int type, Object doc)
-	{
-		typeDocuments[type] = doc;
-	}
+    public void setPropertiesFileField(ValueComponent<String> field) {
+        myPropertiesFileField = field;
+    }
 
-	public void setType(TestType type)
-	{
-		if(type == this.type)
-		{
-			return;
-		}
+    public void setOutputDirectoryField(ValueComponent<String> field) {
+        myOutputDirectoryField = field;
+    }
 
-		this.type = type;
-		updateEditorType(type);
-	}
+    @RequiredUIAccess
+    public void setType(TestType type) {
+        myType = type;
+        updateEditorType(type);
+    }
 
-	private void updateEditorType(TestType type)
-	{
-		editor.onTypeChanged(type);
-	}
+    public TestType getType() {
+        return myType;
+    }
 
-	public void setListener(TestNGConfigurationEditor editor)
-	{
-		this.editor = editor;
-	}
+    @RequiredUIAccess
+    private void updateEditorType(TestType type) {
+        TestNGConfigurationEditor<?> editor = myEditor;
+        if (editor != null) {
+            editor.onTypeChanged(type);
+        }
+    }
 
-	public Object getDocument(int index)
-	{
-		return typeDocuments[index];
-	}
+    public void setListener(TestNGConfigurationEditor<?> editor) {
+        myEditor = editor;
+    }
 
-	public Document getPropertiesFileDocument()
-	{
-		return propertiesFileDocument;
-	}
+    public Project getProject() {
+        return myProject;
+    }
 
-	public Document getOutputDirectoryDocument()
-	{
-		return outputDirectoryDocument;
-	}
+    public void apply(TestNGConfiguration config) {
+        boolean isGenerated = config.isGeneratedName();
+        apply(config.getPersistantData());
+        if (isGenerated && !JavaExecutionUtil.isNewName(config.getName())) {
+            config.setGeneratedName();
+        }
+    }
 
-	public Project getProject()
-	{
-		return project;
-	}
+    private void apply(TestData data) {
+        data.TEST_OBJECT = myType.getType();
+        if (TestType.GROUP == myType) {
+            data.GROUP_NAME = getText(TestType.GROUP);
+            data.PACKAGE_NAME = "";
+            data.MAIN_CLASS_NAME = "";
+            data.METHOD_NAME = "";
+            data.SUITE_NAME = "";
+        }
+        else if (TestType.PACKAGE == myType) {
+            data.PACKAGE_NAME = getText(TestType.PACKAGE);
+            data.GROUP_NAME = "";
+            data.MAIN_CLASS_NAME = "";
+            data.METHOD_NAME = "";
+            data.SUITE_NAME = "";
+        }
+        else if (TestType.METHOD == myType || TestType.CLASS == myType || TestType.SOURCE == myType) {
+            String className = getText(TestType.CLASS);
+            data.GROUP_NAME = "";
+            data.SUITE_NAME = "";
+            if (TestType.METHOD == myType || TestType.SOURCE == myType) {
+                data.METHOD_NAME = getText(TestType.METHOD);
+            }
 
-	public void apply(Module module, TestNGConfiguration config)
-	{
-		boolean isGenerated = config.isGeneratedName();
-		apply(config.getPersistantData(), module);
-		if(isGenerated && !JavaExecutionUtil.isNewName(config.getName()))
-		{
-			config.setGeneratedName();
-		}
-	}
+            data.MAIN_CLASS_NAME = className;
+            data.PACKAGE_NAME = StringUtil.getPackageName(className);
+        }
+        else if (TestType.SUITE == myType) {
+            data.SUITE_NAME = getText(TestType.SUITE);
+            data.PACKAGE_NAME = "";
+            data.GROUP_NAME = "";
+            data.MAIN_CLASS_NAME = "";
+            data.METHOD_NAME = "";
+        }
+        else if (TestType.PATTERN == myType) {
+            LinkedHashSet<String> set = new LinkedHashSet<>();
+            String[] patterns = getText(TestType.PATTERN).split("\\|\\|");
+            for (String pattern : patterns) {
+                if (!pattern.isEmpty()) {
+                    set.add(pattern);
+                }
+            }
+            data.setPatterns(set);
+        }
 
-	private void apply(TestData data, Module module)
-	{
-		data.TEST_OBJECT = type.getType();
-		if(TestType.GROUP == type)
-		{
-			data.GROUP_NAME = getText(TestType.GROUP);
-			data.PACKAGE_NAME = "";
-			data.MAIN_CLASS_NAME = "";
-			data.METHOD_NAME = "";
-			data.SUITE_NAME = "";
-		}
-		else if(TestType.PACKAGE == type)
-		{
-			data.PACKAGE_NAME = getText(TestType.PACKAGE);
-			data.GROUP_NAME = "";
-			data.MAIN_CLASS_NAME = "";
-			data.METHOD_NAME = "";
-			data.SUITE_NAME = "";
-		}
-		else if(TestType.METHOD == type || TestType.CLASS == type || TestType.SOURCE == type)
-		{
-			String className = getText(TestType.CLASS);
-			data.GROUP_NAME = "";
-			data.SUITE_NAME = "";
-			if(TestType.METHOD == type || TestType.SOURCE == type)
-			{
-				data.METHOD_NAME = getText(TestType.METHOD);
-			}
+        data.PROPERTIES_FILE = getText(myPropertiesFileField);
+        data.OUTPUT_DIRECTORY = getText(myOutputDirectoryField);
+    }
 
-			PsiClass psiClass = !getProject().isDefault() && !StringUtil.isEmptyOrSpaces(className) ? JUnitUtil.findPsiClass(className, module, getProject()) : null;
-			if(psiClass != null && psiClass.isValid())
-			{
-				data.setMainClass(psiClass);
-			}
-			else
-			{
-				data.MAIN_CLASS_NAME = className;
-			}
+    private String getText(TestType type) {
+        return getText(myTypeFields[type.getValue()]);
+    }
 
-		}
-		else if(TestType.SUITE == type)
-		{
-			data.SUITE_NAME = getText(TestType.SUITE);
-			data.PACKAGE_NAME = "";
-			data.GROUP_NAME = "";
-			data.MAIN_CLASS_NAME = "";
-			data.METHOD_NAME = "";
-		}
-		else if(TestType.PATTERN == type)
-		{
-			final LinkedHashSet<String> set = new LinkedHashSet<>();
-			final String[] patterns = getText(TestType.PATTERN).split("\\|\\|");
-			for(String pattern : patterns)
-			{
-				if(pattern.length() > 0)
-				{
-					set.add(pattern);
-				}
-			}
-			data.setPatterns(set);
-		}
+    private static String getText(@Nullable ValueComponent<String> field) {
+        return field == null ? "" : StringUtil.notNullize(field.getValue());
+    }
 
-		try
-		{
-			data.PROPERTIES_FILE = propertiesFileDocument.getText(0, propertiesFileDocument.getLength());
-		}
-		catch(BadLocationException e)
-		{
-			throw new RuntimeException(e);
-		}
+    @RequiredUIAccess
+    public void reset(TestNGConfiguration config) {
+        TestData data = config.getPersistantData();
+        setType(data.TEST_OBJECT);
+        setTypeValue(TestType.PACKAGE, data.getPackageName());
+        setTypeValue(TestType.CLASS, data.getMainClassName());
+        setTypeValue(TestType.METHOD, data.getMethodName());
+        setTypeValue(TestType.GROUP, data.getGroupName());
+        setTypeValue(TestType.SUITE, data.getSuiteName());
+        setTypeValue(TestType.PATTERN, StringUtil.join(data.getPatterns(), "||"));
 
-		try
-		{
-			data.OUTPUT_DIRECTORY = outputDirectoryDocument.getText(0, outputDirectoryDocument.getLength());
-		}
-		catch(BadLocationException e)
-		{
-			throw new RuntimeException(e);
-		}
-	}
+        setText(myPropertiesFileField, data.getPropertiesFile());
+        setText(myOutputDirectoryField, data.getOutputDirectory());
+    }
 
-	private String getText(TestType type)
-	{
-		return getText(type, typeDocuments);
-	}
+    @RequiredUIAccess
+    private void setTypeValue(TestType type, String value) {
+        setText(myTypeFields[type.getValue()], value);
+    }
 
-	private String getText(TestType testType, Object[] documents)
-	{
-		Object document = documents[testType.getValue()];
-		if(document instanceof PlainDocument)
-		{
-			try
-			{
-				return ((PlainDocument) document).getText(0, ((PlainDocument) document).getLength());
-			}
-			catch(BadLocationException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-		return ((consulo.document.Document) document).getText();
-	}
+    @RequiredUIAccess
+    private static void setText(@Nullable ValueComponent<String> field, String value) {
+        if (field != null) {
+            field.setValue(value);
+        }
+    }
 
-	public void reset(TestNGConfiguration config)
-	{
-		TestData data = config.getPersistantData();
-		setType(data.TEST_OBJECT);
-		setTypeValue(TestType.PACKAGE, data.getPackageName());
-		setTypeValue(TestType.CLASS, data.getMainClassName());
-		setTypeValue(TestType.METHOD, data.getMethodName());
-		setTypeValue(TestType.GROUP, data.getGroupName());
-		setTypeValue(TestType.SUITE, data.getSuiteName());
-		setTypeValue(TestType.PATTERN, StringUtil.join(data.getPatterns(), "||"));
-
-		setDocumentText(propertiesFileDocument, data.getPropertiesFile());
-		setDocumentText(outputDirectoryDocument, data.getOutputDirectory());
-	}
-
-	private void setTypeValue(TestType type, String value)
-	{
-		setTypeValue(type, value, typeDocuments);
-	}
-
-	private void setTypeValue(TestType type, String value, Object[] documents)
-	{
-		Object document = documents[type.getValue()];
-		setDocumentText(document, value);
-	}
-
-	private void setDocumentText(final Object document, final String value)
-	{
-		if(document instanceof PlainDocument)
-		{
-			try
-			{
-				((PlainDocument) document).remove(0, ((PlainDocument) document).getLength());
-				((PlainDocument) document).insertString(0, value, null);
-			}
-			catch(BadLocationException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-		else
-		{
-			WriteCommandAction.runWriteCommandAction(project, () ->
-			{
-				((consulo.document.Document) document).replaceString(0, ((consulo.document.Document) document).getTextLength(), value);
-			});
-		}
-	}
-
-	private void setType(String s)
-	{
-		try
-		{
-			setType(TestType.valueOf(s));
-		}
-		catch(IllegalArgumentException e)
-		{
-			LOGGER.debug("Invalid test type of " + s + " found.");
-			setType(TestType.CLASS);
-		}
-	}
+    @RequiredUIAccess
+    private void setType(String type) {
+        try {
+            setType(TestType.valueOf(type));
+        }
+        catch (IllegalArgumentException e) {
+            LOGGER.debug("Invalid test type of " + type + " found.");
+            setType(TestType.CLASS);
+        }
+    }
 }

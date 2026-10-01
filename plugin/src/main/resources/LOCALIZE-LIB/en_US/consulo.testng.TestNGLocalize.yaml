@@ -2,3 +2,67 @@ testng.configuration.name:
   text: TestNG
 testng.configuration.description:
   text: TestNG Configuration
+label.all.in.package.test.type:
+  text: All in package
+label.class.test.type:
+  text: Class
+label.method.test.type:
+  text: Method
+label.group.test.type:
+  text: Group
+label.suite.test.type:
+  text: Suite
+label.pattern.test.type:
+  text: Pattern
+label.source.location.test.type:
+  text: Source location
+testng.configuration.group.label:
+  text: 'Group:'
+testng.configuration.suite.label:
+  text: 'Suite:'
+testng.configuration.pattern.label:
+  text: 'Pattern:'
+testng.configuration.output.directory:
+  text: 'Output directory:'
+testng.configuration.properties.file:
+  text: 'Properties file:'
+testng.configuration.parameters.pane:
+  text: Parameters
+testng.configuration.listeners.pane:
+  text: Listeners
+testng.configuration.use.default.reporters.option:
+  text: Use default reporters
+testng.configuration.choose.package.action:
+  text: Choose Package
+testng.configuration.choose.method.action:
+  text: Choose Method
+testng.configuration.add.test.class.action:
+  text: Add Test Class
+testng.configuration.add.listener.dialog.title:
+  text: Add Listener
+testng.configuration.listener.class.label:
+  text: 'Listener class:'
+testng.parameters.table.model.name:
+  text: Name
+testng.parameters.table.model.value:
+  text: Value
+testng.browse.button.title:
+  text: TestNG
+testng.select.properties.file:
+  text: Select .properties file for test properties
+testng.output.directory.button.title:
+  text: TestNG
+testng.select.output.directory:
+  text: Select test output directory
+testng.suite.browser.select.suite:
+  text: Select Suite
+testng.suite.browser.select.xml.suite.file:
+  text: Please select the testng.xml suite file
+testng.choose.test.group:
+  text: Choose Test Group
+testng.group.browser.cannot.browse.groups:
+  text: Cannot Browse Groups
+testng.group.browser.no.tests.found.in.project:
+  text: No tests found in project
+testng.config.editor.dialog.title.choose.listener.class:
+  text: Choose Listener Class

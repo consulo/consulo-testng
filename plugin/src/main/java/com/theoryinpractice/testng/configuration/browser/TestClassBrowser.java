@@ -15,37 +15,42 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
+import com.intellij.java.execution.impl.ui.BaseConfigurationModuleSelector;
 import com.intellij.java.language.psi.PsiClass;
 import com.intellij.java.language.util.ClassFilter;
 import com.intellij.java.language.util.TreeClassChooser;
 import com.intellij.java.language.util.TreeClassChooserFactory;
 import com.theoryinpractice.testng.MessageInfoException;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
-import com.theoryinpractice.testng.configuration.TestNGConfigurationEditor;
-import com.theoryinpractice.testng.configuration.TestNGConfigurationType;
 import com.theoryinpractice.testng.model.TestClassFilter;
+import consulo.execution.localize.ExecutionLocalize;
 import consulo.execution.ui.awt.BrowseModuleValueActionListener;
 import consulo.language.psi.PsiDirectory;
 import consulo.language.psi.scope.GlobalSearchScope;
 import consulo.module.Module;
 import consulo.project.Project;
 import consulo.ui.ex.awt.MessagesEx;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Hani Suleiman
  */
 public class TestClassBrowser extends BrowseModuleValueActionListener
 {
-	protected TestNGConfigurationEditor editor;
+	protected final BaseConfigurationModuleSelector moduleSelector;
 
-	public TestClassBrowser(Project project, TestNGConfigurationEditor editor)
+	public TestClassBrowser(Project project, BaseConfigurationModuleSelector moduleSelector)
 	{
 		super(project);
-		this.editor = editor;
+		this.moduleSelector = moduleSelector;
 	}
 
 	@Override
-	protected String showDialog()
+	protected @Nullable String showDialog()
+	{
+		return chooseClass(getText());
+	}
+
+	public @Nullable String chooseClass(@Nullable String currentClassName)
 	{
 		ClassFilter.ClassFilterWithScope filter;
 		try
@@ -58,8 +63,9 @@ public class TestClassBrowser extends BrowseModuleValueActionListener
 			message.showNow();
 			return null;
 		}
-		TreeClassChooser chooser = TreeClassChooserFactory.getInstance(getProject()).createWithInnerClassesScopeChooser("Choose Test Class", filter.getScope(), filter, null);
-		init(chooser);
+		TreeClassChooser chooser = getProject().getInstance(TreeClassChooserFactory.class)
+				.createWithInnerClassesScopeChooser(ExecutionLocalize.chooseTestClassDialogTitle().get(), filter.getScope(), filter, null);
+		init(chooser, currentClassName);
 		chooser.showDialog();
 		PsiClass psiclass = chooser.getSelected();
 		if(psiclass == null)
@@ -77,16 +83,15 @@ public class TestClassBrowser extends BrowseModuleValueActionListener
 	{
 	}
 
-	protected PsiClass findClass(String className)
+	protected @Nullable PsiClass findClass(String className)
 	{
-		return editor.getModuleSelector().findClass(className);
+		return moduleSelector.findClass(className);
 	}
 
 	public ClassFilter.ClassFilterWithScope getFilter() throws MessageInfoException
 	{
-		TestNGConfiguration config = new TestNGConfiguration("<no-name>", getProject(), TestNGConfigurationType.getInstance().getConfigurationFactories()[0]);
-		editor.applyEditorTo(config);
-		GlobalSearchScope scope = getSearchScope(config.getModules());
+		Module module = moduleSelector.getModule();
+		GlobalSearchScope scope = getSearchScope(module == null ? Module.EMPTY_ARRAY : new Module[]{module});
 		if(scope == null)
 		{
 			scope = GlobalSearchScope.allScope(getProject());
@@ -94,7 +99,7 @@ public class TestClassBrowser extends BrowseModuleValueActionListener
 		return new TestClassFilter(scope, getProject(), false);
 	}
 
-	protected GlobalSearchScope getSearchScope(Module[] modules)
+	protected @Nullable GlobalSearchScope getSearchScope(Module[] modules)
 	{
 		if(modules == null || modules.length == 0)
 		{
@@ -108,10 +113,13 @@ public class TestClassBrowser extends BrowseModuleValueActionListener
 		return scope;
 	}
 
-	private void init(TreeClassChooser chooser)
+	private void init(TreeClassChooser chooser, @Nullable String className)
 	{
-		String s = getText();
-		PsiClass psiclass = findClass(s);
+		if(className == null)
+		{
+			return;
+		}
+		PsiClass psiclass = findClass(className);
 		if(psiclass == null)
 		{
 			return;

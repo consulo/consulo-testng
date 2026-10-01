@@ -19,6 +19,7 @@ import consulo.execution.ui.awt.BrowseModuleValueActionListener;
 import consulo.fileChooser.FileChooserDescriptor;
 import consulo.fileChooser.IdeaFileChooser;
 import consulo.project.Project;
+import consulo.testng.localize.TestNGLocalize;
 import consulo.virtualFileSystem.VirtualFile;
 
 /**
@@ -31,24 +32,19 @@ public class SuiteBrowser extends BrowseModuleValueActionListener
 		super(project);
 	}
 
+	public static FileChooserDescriptor createSuiteDescriptor()
+	{
+		return new FileChooserDescriptor(true, false, false, false, false, false)
+				.withFileFilter(file -> "xml".equals(file.getExtension()))
+				.withExtensionFilter("xml")
+				.withTitle(TestNGLocalize.testngSuiteBrowserSelectSuite())
+				.withDescription(TestNGLocalize.testngSuiteBrowserSelectXmlSuiteFile());
+	}
+
 	@Override
 	public String showDialog()
 	{
-		FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false)
-		{
-			@Override
-			public boolean isFileVisible(VirtualFile virtualFile, boolean showHidden)
-			{
-				if(!showHidden && virtualFile.getName().charAt(0) == '.')
-				{
-					return false;
-				}
-				return virtualFile.isDirectory() || "xml".equals(virtualFile.getExtension());
-			}
-		};
-		descriptor.setDescription("Please select the testng.xml suite file");
-		descriptor.setTitle("Select Suite");
-		VirtualFile file = IdeaFileChooser.chooseFile(descriptor, getProject(), null);
+		VirtualFile file = IdeaFileChooser.chooseFile(createSuiteDescriptor(), getProject(), null);
 		return file != null ? file.getPath() : null;
 	}
 }

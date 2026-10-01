@@ -37,7 +37,6 @@ module consulo.testng
 
 	// TODO remove in future
 	requires java.desktop;
-	requires forms.rt;
 
 	opens com.theoryinpractice.testng.configuration to consulo.util.xml.serializer;
 	opens com.theoryinpractice.testng.model to consulo.util.xml.serializer;

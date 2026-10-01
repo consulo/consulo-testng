@@ -16,21 +16,24 @@
 
 package com.theoryinpractice.testng.model;
 
+import consulo.localize.LocalizeValue;
+import consulo.testng.localize.TestNGLocalize;
+
 public enum TestType
 {
-	PACKAGE("PACKAGE", "All in package", 0),
-	CLASS("CLASS", "Class", 1),
-	METHOD("METHOD", "Method", 2),
-	GROUP("GROUP", "Group", 3),
-	SUITE("SUITE", "Suite", 4),
-	PATTERN("PATTERN", "Pattern", 5),
-	SOURCE("SOURCE", "Source location", 6);
+	PACKAGE("PACKAGE", TestNGLocalize.labelAllInPackageTestType(), 0),
+	CLASS("CLASS", TestNGLocalize.labelClassTestType(), 1),
+	METHOD("METHOD", TestNGLocalize.labelMethodTestType(), 2),
+	GROUP("GROUP", TestNGLocalize.labelGroupTestType(), 3),
+	SUITE("SUITE", TestNGLocalize.labelSuiteTestType(), 4),
+	PATTERN("PATTERN", TestNGLocalize.labelPatternTestType(), 5),
+	SOURCE("SOURCE", TestNGLocalize.labelSourceLocationTestType(), 6);
 
 	public final String type;
-	private final String presentableName;
+	private final LocalizeValue presentableName;
 	public final int value;
 
-	TestType(String type, String presentableName, int value)
+	TestType(String type, LocalizeValue presentableName, int value)
 	{
 		this.type = type;
 		this.presentableName = presentableName;
@@ -47,7 +50,7 @@ public enum TestType
 		return value;
 	}
 
-	public String getPresentableName()
+	public LocalizeValue getPresentableName()
 	{
 		return presentableName;
 	}
