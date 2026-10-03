@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.theoryinpractice.testng.configuration;
 
 import com.intellij.java.execution.impl.testframework.SearchForTestsTask;
@@ -28,10 +27,10 @@ import com.theoryinpractice.testng.util.TestNGXmlSuiteHelper;
 import consulo.application.ReadAction;
 import consulo.container.boot.ContainerPathManager;
 import consulo.execution.CantRunException;
+import consulo.localize.LocalizeValue;
 import consulo.logging.Logger;
 import consulo.process.ExecutionException;
 import consulo.project.Project;
-import consulo.util.io.CharsetToolkit;
 import consulo.util.io.FileUtil;
 import org.testng.xml.LaunchSuite;
 import org.testng.xml.Parser;
@@ -40,251 +39,208 @@ import org.testng.xml.XmlSuite;
 
 import java.io.*;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class SearchingForTestsTask extends SearchForTestsTask
-{
-	private static final Logger LOG = Logger.getInstance(SearchingForTestsTask.class);
-	protected final Map<PsiClass, Map<PsiMethod, List<String>>> myClasses;
-	private final TestData myData;
-	private final Project myProject;
-	private final TestNGConfiguration myConfig;
-	private final File myTempFile;
+public class SearchingForTestsTask extends SearchForTestsTask {
+    private static final Logger LOG = Logger.getInstance(SearchingForTestsTask.class);
+    protected final Map<PsiClass, Map<PsiMethod, List<String>>> myClasses;
+    private final TestData myData;
+    private final Project myProject;
+    private final TestNGConfiguration myConfig;
+    private final File myTempFile;
 
-	public SearchingForTestsTask(ServerSocket serverSocket, TestNGConfiguration config, File tempFile)
-	{
-		super(config.getProject(), serverSocket);
-		myData = config.getPersistantData();
-		myProject = config.getProject();
-		myConfig = config;
-		myTempFile = tempFile;
-		myClasses = new LinkedHashMap<>();
-	}
+    public SearchingForTestsTask(ServerSocket serverSocket, TestNGConfiguration config, File tempFile) {
+        super(config.getProject(), serverSocket);
+        myData = config.getPersistantData();
+        myProject = config.getProject();
+        myConfig = config;
+        myTempFile = tempFile;
+        myClasses = new LinkedHashMap<>();
+    }
 
-	@Override
-	protected void onFound()
-	{
-		if(myClasses.size() > 0)
-		{
-			composeTestSuiteFromClasses();
-		}
-		else if(TestType.SUITE.getType().equals(myData.TEST_OBJECT))
-		{
-			// Running a suite, make a local copy of the suite and apply our custom parameters to it and run that instead.
-			try
-			{
-				composeTestSuiteFromXml();
-			}
-			catch(CantRunException e)
-			{
-				logCantRunException(e);
-			}
-		}
+    @Override
+    protected void onFound() {
+        if (myClasses.size() > 0) {
+            composeTestSuiteFromClasses();
+        }
+        else if (TestType.SUITE.getType().equals(myData.TEST_OBJECT)) {
+            // Running a suite, make a local copy of the suite and apply our custom parameters to it and run that instead.
+            try {
+                composeTestSuiteFromXml();
+            }
+            catch (CantRunException e) {
+                logCantRunException(e);
+            }
+        }
 
-		try
-		{
-			FileUtil.writeToFile(myTempFile, "end".getBytes(), true);
-		}
-		catch(IOException e)
-		{
-			LOG.error(e);
-		}
-	}
+        try {
+            FileUtil.writeToFile(myTempFile, "end".getBytes(), true);
+        }
+        catch (IOException e) {
+            LOG.error(e);
+        }
+    }
 
-	@Override
-	protected void search() throws CantRunException
-	{
-		myClasses.clear();
-		fillTestObjects(myClasses);
-	}
+    @Override
+    protected void search() throws CantRunException {
+        myClasses.clear();
+        fillTestObjects(myClasses);
+    }
 
-	protected void logCantRunException(ExecutionException e)
-	{
-		try
-		{
-			final String message = "CantRunException" + e.getMessage() + "\n";
-			FileUtil.writeToFile(myTempFile, message.getBytes());
-		}
-		catch(IOException e1)
-		{
-			LOG.error(e1);
-		}
-	}
+    @Override
+    protected void logCantRunException(ExecutionException e) {
+        try {
+            String message = "CantRunException" + e.getMessage() + "\n";
+            FileUtil.writeToFile(myTempFile, message.getBytes());
+        }
+        catch (IOException e1) {
+            LOG.error(e1);
+        }
+    }
 
-	private void composeTestSuiteFromClasses()
-	{
-		Map<String, Map<String, List<String>>> map = new LinkedHashMap<>();
+    private void composeTestSuiteFromClasses() {
+        Map<String, Map<String, List<String>>> map = new LinkedHashMap<>();
 
-		final boolean findTestMethodsForClass = shouldSearchForTestMethods();
+        boolean findTestMethodsForClass = shouldSearchForTestMethods();
 
-		for(final Map.Entry<PsiClass, Map<PsiMethod, List<String>>> entry : myClasses.entrySet())
-		{
-			final Map<PsiMethod, List<String>> depMethods = entry.getValue();
-			LinkedHashMap<String, List<String>> methods = new LinkedHashMap<>();
-			for(Map.Entry<PsiMethod, List<String>> method : depMethods.entrySet())
-			{
-				methods.put(method.getKey().getName(), method.getValue());
-			}
-			if(findTestMethodsForClass && depMethods.isEmpty())
-			{
-				for(PsiMethod method : entry.getKey().getMethods())
-				{
-					if(TestNGUtil.hasTest(method))
-					{
-						methods.put(method.getName(), Collections.emptyList());
-					}
-				}
-			}
-			final String className = ReadAction.compute(() -> ClassUtil.getJVMClassName(entry.getKey()));
-			if(className != null)
-			{
-				map.put(className, methods);
-			}
-		}
-		// We have groups we wish to limit to.
-		Collection<String> groupNames = myConfig.calculateGroupNames();
+        for (Map.Entry<PsiClass, Map<PsiMethod, List<String>>> entry : myClasses.entrySet()) {
+            Map<PsiMethod, List<String>> depMethods = entry.getValue();
+            LinkedHashMap<String, List<String>> methods = new LinkedHashMap<>();
+            for (Map.Entry<PsiMethod, List<String>> method : depMethods.entrySet()) {
+                methods.put(method.getKey().getName(), method.getValue());
+            }
+            if (findTestMethodsForClass && depMethods.isEmpty()) {
+                for (PsiMethod method : entry.getKey().getMethods()) {
+                    if (TestNGUtil.hasTest(method)) {
+                        methods.put(method.getName(), Collections.emptyList());
+                    }
+                }
+            }
+            String className = ReadAction.compute(() -> ClassUtil.getJVMClassName(entry.getKey()));
+            if (className != null) {
+                map.put(className, methods);
+            }
+        }
+        // We have groups we wish to limit to.
+        Collection<String> groupNames = myConfig.calculateGroupNames();
 
-		Map<String, String> testParams = buildTestParameters();
+        Map<String, String> testParams = buildTestParameters();
 
-		int logLevel = 1;
-		try
-		{
-			final Properties properties = new Properties();
-			properties.load(new ByteArrayInputStream(myConfig.getPersistantData().VM_PARAMETERS.getBytes()));
-			final String verbose = properties.getProperty("-Dtestng.verbose");
-			if(verbose != null)
-			{
-				logLevel = Integer.parseInt(verbose);
-			}
-		}
-		catch(Exception e)
-		{ //not a number
-			logLevel = 1;
-		}
+        int logLevel = 1;
+        try {
+            Properties properties = new Properties();
+            properties.load(new ByteArrayInputStream(myConfig.getPersistantData().VM_PARAMETERS.getBytes()));
+            String verbose = properties.getProperty("-Dtestng.verbose");
+            if (verbose != null) {
+                logLevel = Integer.parseInt(verbose);
+            }
+        }
+        catch (Exception e) { //not a number
+            logLevel = 1;
+        }
 
-		File xmlFile;
-		if(groupNames != null)
-		{
-			final LinkedHashMap<String, Collection<String>> methodNames = new LinkedHashMap<>();
-			for(Map.Entry<String, Map<String, List<String>>> entry : map.entrySet())
-			{
-				methodNames.put(entry.getKey(), entry.getValue().keySet());
-			}
-			LaunchSuite suite = SuiteGenerator.createSuite(myProject.getName(), null, methodNames, groupNames, testParams, "jdk", logLevel);
-			xmlFile = suite.save(new File(ContainerPathManager.get().getSystemPath()));
-		}
-		else
-		{
-			xmlFile = TestNGXmlSuiteHelper.writeSuite(map, testParams, myProject.getName(), ContainerPathManager.get().getSystemPath(), new TestNGXmlSuiteHelper.Logger()
-			{
-				@Override
-				public void log(Throwable e)
-				{
-					LOG.error(e);
-				}
-			});
-		}
-		String path = xmlFile.getAbsolutePath() + "\n";
-		try
-		{
-			FileUtil.writeToFile(myTempFile, path.getBytes(CharsetToolkit.UTF8_CHARSET), true);
-		}
-		catch(IOException e)
-		{
-			LOG.error(e);
-		}
-	}
+        File xmlFile;
+        if (groupNames != null) {
+            Map<String, Collection<String>> methodNames = new LinkedHashMap<>();
+            for (Map.Entry<String, Map<String, List<String>>> entry : map.entrySet()) {
+                methodNames.put(entry.getKey(), entry.getValue().keySet());
+            }
+            LaunchSuite suite = SuiteGenerator.createSuite(myProject.getName(), null, methodNames, groupNames, testParams, "jdk", logLevel);
+            xmlFile = suite.save(new File(ContainerPathManager.get().getSystemPath()));
+        }
+        else {
+            xmlFile = TestNGXmlSuiteHelper.writeSuite(
+                map,
+                testParams,
+                myProject.getName(),
+                ContainerPathManager.get().getSystemPath(),
+                LOG::error
+            );
+        }
+        String path = xmlFile.getAbsolutePath() + "\n";
+        try {
+            FileUtil.writeToFile(myTempFile, path.getBytes(StandardCharsets.UTF_8), true);
+        }
+        catch (IOException e) {
+            LOG.error(e);
+        }
+    }
 
-	private boolean shouldSearchForTestMethods()
-	{
-		for(Map<PsiMethod, List<String>> methods : myClasses.values())
-		{
-			if(!methods.isEmpty())
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+    private boolean shouldSearchForTestMethods() {
+        for (Map<PsiMethod, List<String>> methods : myClasses.values()) {
+            if (!methods.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private void composeTestSuiteFromXml() throws CantRunException
-	{
-		final Map<String, String> buildTestParams = buildTestParameters();
-		try
-		{
-			if(buildTestParams.isEmpty())
-			{
-				String path = new File(myData.getSuiteName()).getAbsolutePath() + "\n";
-				FileUtil.writeToFile(myTempFile, path.getBytes(CharsetToolkit.UTF8_CHARSET), true);
-				return;
-			}
-			final Parser parser = new Parser(myData.getSuiteName());
-			parser.setLoadClasses(false);
-			final Collection<XmlSuite> suites = parser.parse();
-			for(XmlSuite suite : suites)
-			{
-				Map<String, String> params = suite.getParameters();
+    private void composeTestSuiteFromXml() throws CantRunException {
+        Map<String, String> buildTestParams = buildTestParameters();
+        try {
+            if (buildTestParams.isEmpty()) {
+                String path = new File(myData.getSuiteName()).getAbsolutePath() + "\n";
+                FileUtil.writeToFile(myTempFile, path.getBytes(StandardCharsets.UTF_8), true);
+                return;
+            }
+            Parser parser = new Parser(myData.getSuiteName());
+            parser.setLoadClasses(false);
+            Collection<XmlSuite> suites = parser.parse();
+            for (XmlSuite suite : suites) {
+                Map<String, String> params = suite.getParameters();
 
-				params.putAll(buildTestParams);
+                params.putAll(buildTestParams);
 
-				final String fileId = FileUtil.sanitizeFileName(myProject.getName() + '_' + suite.getName() + '_' + Integer.toHexString(suite.getName().hashCode()) + ".xml");
-				final File suiteFile = new File(ContainerPathManager.get().getSystemPath(), fileId);
-				FileWriter fileWriter = new FileWriter(suiteFile);
-				try
-				{
-					fileWriter.write(suite.toXml());
-				}
-				finally
-				{
-					fileWriter.close();
-				}
-				String path = suiteFile.getAbsolutePath() + "\n";
-				FileUtil.writeToFile(myTempFile, path.getBytes(CharsetToolkit.UTF8_CHARSET), true);
-			}
-		}
-		catch(Exception e)
-		{
-			throw new CantRunException("Unable to parse suite: " + e.getMessage());
-		}
-	}
+                String fileId = FileUtil.sanitizeFileName(
+                    myProject.getName() + '_' + suite.getName() + '_' + Integer.toHexString(suite.getName().hashCode()) + ".xml"
+                );
+                File suiteFile = new File(ContainerPathManager.get().getSystemPath(), fileId);
+                FileWriter fileWriter = new FileWriter(suiteFile);
+                try {
+                    fileWriter.write(suite.toXml());
+                }
+                finally {
+                    fileWriter.close();
+                }
+                String path = suiteFile.getAbsolutePath() + "\n";
+                FileUtil.writeToFile(myTempFile, path.getBytes(StandardCharsets.UTF_8), true);
+            }
+        }
+        catch (Exception e) {
+            throw new CantRunException(LocalizeValue.localizeTODO("Unable to parse suite: " + e.getMessage()));
+        }
+    }
 
-	protected void fillTestObjects(final Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException
-	{
-		final TestNGTestObject testObject = TestNGTestObject.fromConfig(myConfig);
-		if(testObject != null)
-		{
-			testObject.fillTestObjects(classes);
-		}
-	}
+    protected void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException {
+        TestNGTestObject testObject = TestNGTestObject.fromConfig(myConfig);
+        if (testObject != null) {
+            testObject.fillTestObjects(classes);
+        }
+    }
 
-	private Map<String, String> buildTestParameters()
-	{
-		Map<String, String> testParams = new HashMap<>();
+    private Map<String, String> buildTestParameters() {
+        Map<String, String> testParams = new HashMap<>();
 
-		// Override with those from the test runner configuration
-		if(myData.PROPERTIES_FILE != null)
-		{
-			File propertiesFile = new File(myData.PROPERTIES_FILE);
-			if(propertiesFile.exists())
-			{
+        // Override with those from the test runner configuration
+        if (myData.PROPERTIES_FILE != null) {
+            File propertiesFile = new File(myData.PROPERTIES_FILE);
+            if (propertiesFile.exists()) {
 
-				Properties properties = new Properties();
-				try
-				{
-					properties.load(new FileInputStream(propertiesFile));
-					for(Map.Entry entry : properties.entrySet())
-					{
-						testParams.put((String) entry.getKey(), (String) entry.getValue());
-					}
+                Properties properties = new Properties();
+                try {
+                    properties.load(new FileInputStream(propertiesFile));
+                    for (Map.Entry entry : properties.entrySet()) {
+                        testParams.put((String) entry.getKey(), (String) entry.getValue());
+                    }
 
-				}
-				catch(IOException e)
-				{
-					LOG.error(e);
-				}
-			}
-		}
-		testParams.putAll(myData.TEST_PROPERTIES);
-		return testParams;
-	}
+                }
+                catch (IOException e) {
+                    LOG.error(e);
+                }
+            }
+        }
+        testParams.putAll(myData.TEST_PROPERTIES);
+        return testParams;
+    }
 }
