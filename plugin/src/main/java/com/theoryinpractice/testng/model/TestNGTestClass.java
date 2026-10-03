@@ -28,73 +28,66 @@ import consulo.execution.test.SourceScope;
 import consulo.language.psi.PsiElement;
 import consulo.language.psi.PsiManager;
 import consulo.language.psi.util.PsiTreeUtil;
+import consulo.localize.LocalizeValue;
 import consulo.util.lang.Comparing;
 
 import java.util.List;
 import java.util.Map;
 
-public class TestNGTestClass extends TestNGTestObject
-{
-	public TestNGTestClass(TestNGConfiguration config)
-	{
-		super(config);
-	}
+public class TestNGTestClass extends TestNGTestObject {
+    public TestNGTestClass(TestNGConfiguration config) {
+        super(config);
+    }
 
-	@Override
-	public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException
-	{
-		final TestData data = myConfig.getPersistantData();
-		//it's a class
-		final PsiClass psiClass = ReadAction.compute(() -> ClassUtil.findPsiClass(PsiManager.getInstance(myConfig.getProject()), data.getMainClassName().replace('/', '.'), null, true, getSearchScope
-				()));
-		if(psiClass == null)
-		{
-			throw new CantRunException("No tests found in the class \"" + data.getMainClassName() + '\"');
-		}
-		if(null == ReadAction.compute(() -> psiClass.getQualifiedName()))
-		{
-			throw new CantRunException("Cannot test anonymous or local class \"" + data.getMainClassName() + '\"');
-		}
-		calculateDependencies(null, classes, getSearchScope(), psiClass);
-	}
+    @Override
+    public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException {
+        TestData data = myConfig.getPersistantData();
+        //it's a class
+        PsiClass psiClass = ReadAction.compute(() -> ClassUtil.findPsiClass(
+            PsiManager.getInstance(myConfig.getProject()),
+            data.getMainClassName().replace('/', '.'),
+            null,
+            true,
+            getSearchScope
+                ()
+        ));
+        if (psiClass == null) {
+            throw new CantRunException(LocalizeValue.localizeTODO("No tests found in the class \"" + data.getMainClassName() + '\"'));
+        }
+        if (null == ReadAction.compute(() -> psiClass.getQualifiedName())) {
+            throw new CantRunException(LocalizeValue.localizeTODO("Cannot test anonymous or local class \"" + data.getMainClassName() + '\"'));
+        }
+        calculateDependencies(null, classes, getSearchScope(), psiClass);
+    }
 
-	@Override
-	public String getGeneratedName()
-	{
-		return JavaExecutionUtil.getPresentableClassName(myConfig.getPersistantData().getMainClassName());
-	}
+    @Override
+    public String getGeneratedName() {
+        return JavaExecutionUtil.getPresentableClassName(myConfig.getPersistantData().getMainClassName());
+    }
 
-	@Override
-	public String getActionName()
-	{
-		return JavaExecutionUtil.getShortClassName(myConfig.getPersistantData().MAIN_CLASS_NAME);
-	}
+    @Override
+    public String getActionName() {
+        return JavaExecutionUtil.getShortClassName(myConfig.getPersistantData().MAIN_CLASS_NAME);
+    }
 
-	@Override
-	public void checkConfiguration() throws RuntimeConfigurationException
-	{
-		final TestData data = myConfig.getPersistantData();
-		final SourceScope scope = data.getScope().getSourceScope(myConfig);
-		if(scope == null)
-		{
-			throw new RuntimeConfigurationException("Invalid scope specified");
-		}
-		final PsiManager manager = PsiManager.getInstance(myConfig.getProject());
-		final PsiClass psiClass = ClassUtil.findPsiClass(manager, data.getMainClassName(), null, true, scope.getGlobalSearchScope());
-		if(psiClass == null)
-		{
-			throw new RuntimeConfigurationException("Class '" + data.getMainClassName() + "' not found");
-		}
-	}
+    @Override
+    public void checkConfiguration() throws RuntimeConfigurationException {
+        TestData data = myConfig.getPersistantData();
+        SourceScope scope = data.getScope().getSourceScope(myConfig);
+        if (scope == null) {
+            throw new RuntimeConfigurationException(LocalizeValue.localizeTODO("Invalid scope specified"));
+        }
+        PsiManager manager = PsiManager.getInstance(myConfig.getProject());
+        PsiClass psiClass = ClassUtil.findPsiClass(manager, data.getMainClassName(), null, true, scope.getGlobalSearchScope());
+        if (psiClass == null) {
+            throw new RuntimeConfigurationException(LocalizeValue.localizeTODO("Class '" + data.getMainClassName() + "' not found"));
+        }
+    }
 
-	@Override
-	public boolean isConfiguredByElement(PsiElement element)
-	{
-		element = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner.class, false);
-		if(element instanceof PsiClass)
-		{
-			return Comparing.strEqual(myConfig.getPersistantData().getMainClassName(), JavaExecutionUtil.getRuntimeQualifiedName((PsiClass) element));
-		}
-		return false;
-	}
+    @Override
+    public boolean isConfiguredByElement(PsiElement element) {
+        element = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner.class, false);
+        return element instanceof PsiClass psiClass
+            && Comparing.strEqual(myConfig.getPersistantData().getMainClassName(), JavaExecutionUtil.getRuntimeQualifiedName(psiClass));
+    }
 }
