@@ -47,7 +47,7 @@ public abstract class TestNGTestObject
 	@NotNull
 	public static TestNGTestObject fromConfig(@NotNull TestNGConfiguration config)
 	{
-		final String testObject = config.getPersistantData().TEST_OBJECT;
+		final String testObject = config.getOptions().getTestObject();
 		if(testObject.equals(TestType.PACKAGE.getType()))
 		{
 			return new TestNGTestPackage(config);
@@ -309,11 +309,10 @@ public abstract class TestNGTestObject
 	@NotNull
 	protected GlobalSearchScope getSearchScope()
 	{
-		final TestData data = myConfig.getPersistantData();
-		final Module module = myConfig.getConfigurationModule().getModule();
-		if(data.TEST_OBJECT.equals(TestType.PACKAGE.getType()))
+				final Module module = myConfig.getConfigurationModule().getModule();
+		if(myConfig.getOptions().getTestObject().equals(TestType.PACKAGE.getType()))
 		{
-			SourceScope scope = myConfig.getPersistantData().getScope().getSourceScope(myConfig);
+			SourceScope scope = myConfig.getTestSearchScope().getSourceScope(myConfig);
 			if(scope != null)
 			{
 				return scope.getGlobalSearchScope();

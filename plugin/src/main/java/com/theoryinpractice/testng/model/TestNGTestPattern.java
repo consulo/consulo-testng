@@ -49,9 +49,8 @@ public class TestNGTestPattern extends TestNGTestObject {
 
     @Override
     public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException {
-        TestData data = myConfig.getPersistantData();
-        Set<String> patterns = data.getPatterns();
-        fillTestObjects(classes, patterns, myConfig.getPersistantData().getScope(), myConfig, getSearchScope());
+        Set<String> patterns = myConfig.getPatterns();
+        fillTestObjects(classes, patterns, myConfig.getTestSearchScope(), myConfig, getSearchScope());
     }
 
     public static void fillTestObjects(
@@ -138,7 +137,7 @@ public class TestNGTestPattern extends TestNGTestObject {
 
     @Override
     public String getGeneratedName() {
-        Set<String> patterns = myConfig.getPersistantData().getPatterns();
+        Set<String> patterns = myConfig.getPatterns();
         int size = patterns.size();
         if (size == 0) {
             return "Temp suite";
@@ -153,7 +152,7 @@ public class TestNGTestPattern extends TestNGTestObject {
 
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
-        Set<String> patterns = myConfig.getPersistantData().getPatterns();
+        Set<String> patterns = myConfig.getPatterns();
         if (patterns.isEmpty()) {
             throw new RuntimeConfigurationWarning(LocalizeValue.localizeTODO("No pattern selected"));
         }

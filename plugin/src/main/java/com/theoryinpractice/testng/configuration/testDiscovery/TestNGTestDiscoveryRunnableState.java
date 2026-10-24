@@ -19,7 +19,7 @@ import com.intellij.java.execution.impl.testDiscovery.TestDiscoverySearchHelper;
 import com.theoryinpractice.testng.configuration.SearchingForTestsTask;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import com.theoryinpractice.testng.configuration.TestNGRunnableState;
-import com.theoryinpractice.testng.model.TestData;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationOptions;
 import com.theoryinpractice.testng.model.TestNGTestPattern;
 import com.theoryinpractice.testng.model.TestType;
 import consulo.execution.CantRunException;
@@ -61,9 +61,9 @@ public class TestNGTestDiscoveryRunnableState extends TestNGRunnableState
 			protected void search() throws CantRunException
 			{
 				myClasses.clear();
-				final TestData data = getConfiguration().getPersistantData();
-				final Pair<String, String> position = data.TEST_OBJECT.equals(TestType.SOURCE.getType()) ? Pair.create(data.getMainClassName(), data.getMethodName()) : null;
-				final Set<String> patterns = TestDiscoverySearchHelper.search((Project) getProject(), position, data.getChangeList(), getConfiguration().getFrameworkPrefix());
+				final TestNGConfigurationOptions data = getConfiguration().getOptions();
+				final Pair<String, String> position = data.getTestObject().equals(TestType.SOURCE.getType()) ? Pair.create(data.getMainClassName(), data.getMethodName()) : null;
+				final Set<String> patterns = TestDiscoverySearchHelper.search((Project) getProject(), position, getConfiguration().getChangeList(), getConfiguration().getFrameworkPrefix());
 				final Module module = getConfiguration().getConfigurationModule().getModule();
 				final GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.projectScope((Project) getProject());
 				TestNGTestPattern.fillTestObjects(myClasses, patterns, TestSearchScope.MODULE_WITH_DEPENDENCIES, getConfiguration(), searchScope);

@@ -66,3 +66,17 @@ testng.group.browser.no.tests.found.in.project:
   text: No tests found in project
 testng.config.editor.dialog.title.choose.listener.class:
   text: Choose Listener Class
+run.configuration.fragment.group.testng:
+  text: TestNG
+run.configuration.fragment.test.kind:
+  text: Test kind
+run.configuration.fragment.output.directory:
+  text: Output directory
+run.configuration.fragment.properties.file:
+  text: Properties file
+run.configuration.fragment.use.default.reporters:
+  text: Use default reporters
+run.configuration.fragment.parameters:
+  text: Test parameters
+run.configuration.fragment.listeners:
+  text: Listeners

@@ -4,7 +4,6 @@
 
 package com.theoryinpractice.testng.configuration;
 
-import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.component.extension.ExtensionInstance;
@@ -46,33 +45,21 @@ public class TestNGConfigurationType extends SimpleConfigurationType
 	public boolean isConfigurationByLocation(RunConfiguration runConfiguration, Location location)
 	{
 		TestNGConfiguration config = (TestNGConfiguration) runConfiguration;
-		TestData testobject = config.getPersistantData();
-		if(testobject == null)
+		final PsiElement element = location.getPsiElement();
+		final TestNGTestObject testNGTestObject = TestNGTestObject.fromConfig(config);
+		if(testNGTestObject != null && testNGTestObject.isConfiguredByElement(element))
 		{
-			return false;
-		}
-		else
-		{
-			final PsiElement element = location.getPsiElement();
-			final TestNGTestObject testNGTestObject = TestNGTestObject.fromConfig(config);
-			if(testNGTestObject != null && testNGTestObject.isConfiguredByElement(element))
+			final Module configurationModule = config.getConfigurationModule().getModule();
+			if(Comparing.equal(location.getModule(), configurationModule))
 			{
-				final Module configurationModule = config.getConfigurationModule().getModule();
-				if(Comparing.equal(location.getModule(), configurationModule))
-				{
-					return true;
-				}
-
-				final Module predefinedModule = ((TestNGConfiguration) RunManager.getInstance(location.getProject()).getConfigurationTemplate(this).getConfiguration()).getConfigurationModule()
-						.getModule();
-				return Comparing.equal(predefinedModule, configurationModule);
-
+				return true;
 			}
-			else
-			{
-				return false;
-			}
+
+			final Module predefinedModule = ((TestNGConfiguration) RunManager.getInstance(location.getProject()).getConfigurationTemplate(this).getConfiguration()).getConfigurationModule()
+					.getModule();
+			return Comparing.equal(predefinedModule, configurationModule);
 		}
+		return false;
 	}
 
 	@NotNull

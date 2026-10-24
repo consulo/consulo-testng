@@ -45,14 +45,14 @@ public class TestNGConsoleProperties extends JavaAwareTestConsoleProperties<Test
 	protected GlobalSearchScope initScope()
 	{
 		final TestNGConfiguration configuration = getConfiguration();
-		final String testObject = configuration.getPersistantData().TEST_OBJECT;
+		final String testObject = configuration.getOptions().getTestObject();
 		if(TestType.CLASS.getType().equals(testObject) || TestType.METHOD.getType().equals(testObject))
 		{
 			return super.initScope();
 		}
 		else
 		{
-			final SourceScope sourceScope = configuration.getPersistantData().getScope().getSourceScope(configuration);
+			final SourceScope sourceScope = configuration.getTestSearchScope().getSourceScope(configuration);
 			return sourceScope != null ? sourceScope.getGlobalSearchScope() : GlobalSearchScope.allScope(getProject());
 		}
 	}

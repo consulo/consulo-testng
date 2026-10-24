@@ -38,9 +38,8 @@ public class TestNGTestGroup extends TestNGTestObject
 	@Override
 	public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException
 	{
-		final TestData data = myConfig.getPersistantData();
-		//for a group, we include all classes
-		final SourceScope sourceScope = data.getScope().getSourceScope(myConfig);
+				//for a group, we include all classes
+		final SourceScope sourceScope = myConfig.getTestSearchScope().getSourceScope(myConfig);
 		final TestClassFilter classFilter = new TestClassFilter(sourceScope != null ? sourceScope.getGlobalSearchScope() : GlobalSearchScope.allScope(myConfig.getProject()), myConfig.getProject(),
 				true, true);
 		PsiClass[] testClasses = TestNGUtil.getAllTestClasses(classFilter, false);
@@ -56,13 +55,13 @@ public class TestNGTestGroup extends TestNGTestObject
 	@Override
 	public String getGeneratedName()
 	{
-		return myConfig.getPersistantData().getGroupName();
+		return myConfig.getOptions().getGroupName();
 	}
 
 	@Override
 	public String getActionName()
 	{
-		return myConfig.getPersistantData().getGroupName();
+		return myConfig.getOptions().getGroupName();
 	}
 
 	@Override

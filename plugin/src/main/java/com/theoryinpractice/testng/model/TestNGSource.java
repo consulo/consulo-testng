@@ -18,6 +18,7 @@ package com.theoryinpractice.testng.model;
 import com.intellij.java.language.psi.PsiClass;
 import com.intellij.java.language.psi.PsiMethod;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationOptions;
 import consulo.execution.CantRunException;
 import consulo.util.lang.StringUtil;
 
@@ -39,7 +40,7 @@ public class TestNGSource extends TestNGTestMethod
 	@Override
 	public String getGeneratedName()
 	{
-		final TestData data = myConfig.getPersistantData();
+		final TestNGConfigurationOptions data = myConfig.getOptions();
 		return "Tests for " + StringUtil.getQualifiedName(data.getMainClassName(), data.getMethodName());
 	}
 

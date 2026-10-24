@@ -18,7 +18,6 @@ package com.theoryinpractice.testng.configuration;
 import com.intellij.java.execution.impl.junit.JavaRuntimeConfigurationProducerBase;
 import com.intellij.java.execution.impl.junit2.info.LocationUtil;
 import com.intellij.java.language.psi.PsiJavaPackage;
-import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestType;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.execution.action.ConfigurationContext;
@@ -47,10 +46,10 @@ public abstract class AbstractTestNGPackageConfigurationProducer extends TestNGC
         if (!LocationUtil.isJarAttached(location, aPackage, TestNGUtil.TEST_ANNOTATION_FQN)) {
             return false;
         }
-        final TestData data = configuration.data;
-        data.PACKAGE_NAME = aPackage.getQualifiedName();
-        data.TEST_OBJECT = TestType.PACKAGE.getType();
-        data.setScope(setupPackageConfiguration(context, configuration, data.getScope()));
+        final TestNGConfigurationOptions data = configuration.getOptions();
+        data.setPackageName(aPackage.getQualifiedName());
+        data.setTestObject(TestType.PACKAGE.getType());
+        configuration.setTestSearchScope(setupPackageConfiguration(context, configuration, configuration.getTestSearchScope()));
         configuration.setGeneratedName();
         sourceElement.set(aPackage);
         return true;

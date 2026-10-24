@@ -50,8 +50,8 @@ public abstract class AbstractTestNGSuiteConfigurationProducer extends TestNGCon
         RunnerAndConfigurationSettings settings = cloneTemplateConfiguration(context);
         setupConfigurationModule(context, configuration);
         final Module originalModule = configuration.getConfigurationModule().getModule();
-        configuration.getPersistantData().SUITE_NAME = virtualFile.getPath();
-        configuration.getPersistantData().TEST_OBJECT = TestType.SUITE.getType();
+        configuration.getOptions().setSuiteName(virtualFile.getPath());
+        configuration.getOptions().setTestObject(TestType.SUITE.getType());
         configuration.restoreOriginalModule(originalModule);
         configuration.setGeneratedName();
         settings.setName(configuration.getName());

@@ -38,7 +38,7 @@ module consulo.testng
 	// TODO remove in future
 	requires java.desktop;
 
-	opens com.theoryinpractice.testng.configuration to consulo.util.xml.serializer;
+	opens com.theoryinpractice.testng.configuration to consulo.util.xml.serializer, consulo.execution.api;
 	opens com.theoryinpractice.testng.model to consulo.util.xml.serializer;
 	opens com.theoryinpractice.testng.inspection to consulo.util.xml.serializer;
 

@@ -21,6 +21,7 @@ import com.intellij.java.language.psi.PsiMethod;
 import com.intellij.java.language.psi.PsiModifierListOwner;
 import com.intellij.java.language.psi.util.ClassUtil;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationOptions;
 import consulo.application.ReadAction;
 import consulo.execution.CantRunException;
 import consulo.execution.RuntimeConfigurationException;
@@ -41,7 +42,7 @@ public class TestNGTestClass extends TestNGTestObject {
 
     @Override
     public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException {
-        TestData data = myConfig.getPersistantData();
+        TestNGConfigurationOptions data = myConfig.getOptions();
         //it's a class
         PsiClass psiClass = ReadAction.compute(() -> ClassUtil.findPsiClass(
             PsiManager.getInstance(myConfig.getProject()),
@@ -62,18 +63,18 @@ public class TestNGTestClass extends TestNGTestObject {
 
     @Override
     public String getGeneratedName() {
-        return JavaExecutionUtil.getPresentableClassName(myConfig.getPersistantData().getMainClassName());
+        return JavaExecutionUtil.getPresentableClassName(myConfig.getOptions().getMainClassName());
     }
 
     @Override
     public String getActionName() {
-        return JavaExecutionUtil.getShortClassName(myConfig.getPersistantData().MAIN_CLASS_NAME);
+        return JavaExecutionUtil.getShortClassName(myConfig.getOptions().getMainClassName());
     }
 
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
-        TestData data = myConfig.getPersistantData();
-        SourceScope scope = data.getScope().getSourceScope(myConfig);
+        TestNGConfigurationOptions data = myConfig.getOptions();
+        SourceScope scope = myConfig.getTestSearchScope().getSourceScope(myConfig);
         if (scope == null) {
             throw new RuntimeConfigurationException(LocalizeValue.localizeTODO("Invalid scope specified"));
         }
@@ -88,6 +89,6 @@ public class TestNGTestClass extends TestNGTestObject {
     public boolean isConfiguredByElement(PsiElement element) {
         element = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner.class, false);
         return element instanceof PsiClass psiClass
-            && Comparing.strEqual(myConfig.getPersistantData().getMainClassName(), JavaExecutionUtil.getRuntimeQualifiedName(psiClass));
+            && Comparing.strEqual(myConfig.getOptions().getMainClassName(), JavaExecutionUtil.getRuntimeQualifiedName(psiClass));
     }
 }

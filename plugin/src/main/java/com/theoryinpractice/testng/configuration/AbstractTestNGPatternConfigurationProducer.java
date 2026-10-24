@@ -17,7 +17,6 @@
 package com.theoryinpractice.testng.configuration;
 
 import com.intellij.java.execution.impl.testframework.AbstractPatternBasedConfigurationProducer;
-import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestType;
 import consulo.execution.action.ConfigurationContext;
 import consulo.execution.configuration.ConfigurationType;
@@ -42,10 +41,9 @@ public abstract class AbstractTestNGPatternConfigurationProducer extends Abstrac
             return false;
         }
         sourceElement.set(element);
-        final TestData data = configuration.getPersistantData();
-        data.setPatterns(classes);
-        data.TEST_OBJECT = TestType.PATTERN.getType();
-        data.setScope(setupPackageConfiguration(context, configuration, data.getScope()));
+        configuration.setPatterns(classes);
+        configuration.getOptions().setTestObject(TestType.PATTERN.getType());
+        configuration.setTestSearchScope(setupPackageConfiguration(context, configuration, configuration.getTestSearchScope()));
         configuration.setGeneratedName();
         setupConfigurationParamName(configuration, context.getLocation());
         return true;
@@ -53,18 +51,18 @@ public abstract class AbstractTestNGPatternConfigurationProducer extends Abstrac
 
     @Override
     protected Module findModule(TestNGConfiguration configuration, Module contextModule) {
-        final Set<String> patterns = configuration.data.getPatterns();
+        final Set<String> patterns = configuration.getPatterns();
         return findModule(configuration, contextModule, patterns);
     }
 
     @Override
     public boolean isConfigurationFromContext(TestNGConfiguration testNGConfiguration, ConfigurationContext context) {
-        final String type = testNGConfiguration.getPersistantData().TEST_OBJECT;
+        final String type = testNGConfiguration.getOptions().getTestObject();
         if (Comparing.equal(type, TestType.PATTERN.getType())) {
             if (differentParamSet(testNGConfiguration, context.getLocation())) {
                 return false;
             }
-            return isConfiguredFromContext(context, testNGConfiguration.getPersistantData().getPatterns());
+            return isConfiguredFromContext(context, testNGConfiguration.getPatterns());
         }
         return false;
     }

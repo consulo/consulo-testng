@@ -19,7 +19,6 @@ import com.intellij.java.execution.impl.testframework.SearchForTestsTask;
 import com.intellij.java.language.psi.PsiClass;
 import com.intellij.java.language.psi.PsiMethod;
 import com.intellij.java.language.psi.util.ClassUtil;
-import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import com.theoryinpractice.testng.model.TestType;
 import com.theoryinpractice.testng.util.TestNGUtil;
@@ -32,6 +31,7 @@ import consulo.logging.Logger;
 import consulo.process.ExecutionException;
 import consulo.project.Project;
 import consulo.util.io.FileUtil;
+import consulo.util.lang.StringUtil;
 import org.testng.xml.LaunchSuite;
 import org.testng.xml.Parser;
 import org.testng.xml.SuiteGenerator;
@@ -45,14 +45,14 @@ import java.util.*;
 public class SearchingForTestsTask extends SearchForTestsTask {
     private static final Logger LOG = Logger.getInstance(SearchingForTestsTask.class);
     protected final Map<PsiClass, Map<PsiMethod, List<String>>> myClasses;
-    private final TestData myData;
+    private final TestNGConfigurationOptions myData;
     private final Project myProject;
     private final TestNGConfiguration myConfig;
     private final File myTempFile;
 
     public SearchingForTestsTask(ServerSocket serverSocket, TestNGConfiguration config, File tempFile) {
         super(config.getProject(), serverSocket);
-        myData = config.getPersistantData();
+        myData = config.getOptions();
         myProject = config.getProject();
         myConfig = config;
         myTempFile = tempFile;
@@ -64,7 +64,7 @@ public class SearchingForTestsTask extends SearchForTestsTask {
         if (myClasses.size() > 0) {
             composeTestSuiteFromClasses();
         }
-        else if (TestType.SUITE.getType().equals(myData.TEST_OBJECT)) {
+        else if (TestType.SUITE.getType().equals(myData.getTestObject())) {
             // Running a suite, make a local copy of the suite and apply our custom parameters to it and run that instead.
             try {
                 composeTestSuiteFromXml();
@@ -130,7 +130,7 @@ public class SearchingForTestsTask extends SearchForTestsTask {
         int logLevel = 1;
         try {
             Properties properties = new Properties();
-            properties.load(new ByteArrayInputStream(myConfig.getPersistantData().VM_PARAMETERS.getBytes()));
+            properties.load(new ByteArrayInputStream(StringUtil.notNullize(myConfig.getVMParameters()).getBytes()));
             String verbose = properties.getProperty("-Dtestng.verbose");
             if (verbose != null) {
                 logLevel = Integer.parseInt(verbose);
@@ -223,8 +223,8 @@ public class SearchingForTestsTask extends SearchForTestsTask {
         Map<String, String> testParams = new HashMap<>();
 
         // Override with those from the test runner configuration
-        if (myData.PROPERTIES_FILE != null) {
-            File propertiesFile = new File(myData.PROPERTIES_FILE);
+        if (!myData.getPropertiesFile().isEmpty()) {
+            File propertiesFile = new File(myData.getPropertiesFile());
             if (propertiesFile.exists()) {
 
                 Properties properties = new Properties();
@@ -240,7 +240,7 @@ public class SearchingForTestsTask extends SearchForTestsTask {
                 }
             }
         }
-        testParams.putAll(myData.TEST_PROPERTIES);
+        testParams.putAll(myData.getProperties());
         return testParams;
     }
 }

@@ -19,6 +19,7 @@ import com.intellij.java.execution.JavaExecutionUtil;
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.util.ClassUtil;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationOptions;
 import consulo.application.ReadAction;
 import consulo.execution.CantRunException;
 import consulo.execution.RuntimeConfigurationException;
@@ -39,7 +40,7 @@ public class TestNGTestMethod extends TestNGTestObject {
 
     @Override
     public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException {
-        TestData data = myConfig.getPersistantData();
+        TestNGConfigurationOptions data = myConfig.getOptions();
         PsiClass psiClass = ReadAction.compute(() -> ClassUtil.findPsiClass(
             PsiManager.getInstance(myConfig.getProject()),
             data.getMainClassName().replace('/', '.'),
@@ -59,19 +60,19 @@ public class TestNGTestMethod extends TestNGTestObject {
 
     @Override
     public String getGeneratedName() {
-        TestData data = myConfig.getPersistantData();
+        TestNGConfigurationOptions data = myConfig.getOptions();
         return JavaExecutionUtil.getPresentableClassName(data.getMainClassName()) + '.' + data.getMethodName();
     }
 
     @Override
     public String getActionName() {
-        return myConfig.getPersistantData().getMethodName() + "()";
+        return myConfig.getOptions().getMethodName() + "()";
     }
 
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
-        TestData data = myConfig.getPersistantData();
-        SourceScope scope = data.getScope().getSourceScope(myConfig);
+        TestNGConfigurationOptions data = myConfig.getOptions();
+        SourceScope scope = myConfig.getTestSearchScope().getSourceScope(myConfig);
         if (scope == null) {
             throw new RuntimeConfigurationException("Invalid scope specified");
         }
@@ -96,11 +97,11 @@ public class TestNGTestMethod extends TestNGTestObject {
         element = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner.class, false);
         if (element instanceof PsiMethod) {
             final PsiClass aClass = ((PsiMethod) element).getContainingClass();
-            final TestData data = myConfig.getPersistantData();
+            final TestNGConfigurationOptions data = myConfig.getOptions();
             return aClass != null && Comparing.strEqual(
-                data.MAIN_CLASS_NAME,
+                data.getMainClassName(),
                 JavaExecutionUtil.getRuntimeQualifiedName(aClass)
-            ) && Comparing.strEqual(data.METHOD_NAME, ((PsiMethod) element).getName
+            ) && Comparing.strEqual(data.getMethodName(), ((PsiMethod) element).getName
                 ());
         }
         return false;

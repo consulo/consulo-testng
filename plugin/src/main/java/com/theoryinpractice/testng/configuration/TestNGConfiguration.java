@@ -10,14 +10,15 @@ import com.intellij.java.execution.configurations.RemoteConnectionCreator;
 import com.intellij.java.execution.impl.JavaRunConfigurationExtensionManager;
 import com.intellij.java.execution.impl.JavaTestConfigurationBase;
 import com.intellij.java.execution.impl.RunConfigurationExtension;
+import com.intellij.java.execution.impl.junit.JUnitUtil;
 import com.intellij.java.execution.impl.junit.RefactoringListeners;
+import com.intellij.java.execution.impl.junit2.info.MethodLocation;
 import com.intellij.java.execution.impl.util.JavaParametersUtil;
 import com.intellij.java.language.psi.JavaPsiFacade;
 import com.intellij.java.language.psi.PsiClass;
 import com.intellij.java.language.psi.PsiJavaPackage;
 import com.intellij.java.language.psi.PsiMethod;
 import com.theoryinpractice.testng.configuration.testDiscovery.TestNGTestDiscoveryRunnableState;
-import com.theoryinpractice.testng.model.TestData;
 import com.theoryinpractice.testng.model.TestNGConsoleProperties;
 import com.theoryinpractice.testng.model.TestNGTestObject;
 import com.theoryinpractice.testng.model.TestType;
@@ -26,18 +27,19 @@ import consulo.execution.action.Location;
 import consulo.execution.action.PsiLocation;
 import consulo.execution.action.RunConfigurationProducer;
 import consulo.execution.configuration.ConfigurationFactory;
-import consulo.execution.configuration.RunConfiguration;
+import consulo.execution.configuration.LegacyRunConfigurationConverter;
 import consulo.execution.configuration.RunProfileState;
-import consulo.execution.configuration.log.ui.LogConfigurationPanel;
-import consulo.execution.configuration.ui.SettingsEditor;
-import consulo.execution.configuration.ui.SettingsEditorGroup;
+import consulo.execution.configuration.fragment.EnvironmentFragmentState;
+import consulo.execution.configuration.fragment.ProgramParametersFragmentState;
+import consulo.execution.configuration.fragment.RunConfigurationFragment;
+import consulo.execution.configuration.fragment.WorkingDirectoryFragmentState;
 import consulo.execution.executor.Executor;
-import consulo.execution.localize.ExecutionLocalize;
 import consulo.execution.runner.ExecutionEnvironment;
 import consulo.execution.test.TestSearchScope;
 import consulo.execution.test.sm.runner.SMTRunnerConsoleProperties;
-import consulo.execution.ui.awt.EnvironmentVariablesComponent;
 import consulo.execution.util.ProgramParametersUtil;
+import consulo.java.execution.configurations.fragment.JreFragmentState;
+import consulo.java.execution.configurations.fragment.VmParametersFragmentState;
 import consulo.language.editor.refactoring.event.RefactoringElementAdapter;
 import consulo.language.editor.refactoring.event.RefactoringElementListener;
 import consulo.language.editor.refactoring.event.UndoRefactoringElementListener;
@@ -47,37 +49,31 @@ import consulo.language.psi.scope.GlobalSearchScope;
 import consulo.module.Module;
 import consulo.project.Project;
 import consulo.util.lang.StringUtil;
-import consulo.util.xml.serializer.DefaultJDOMExternalizer;
-import consulo.util.xml.serializer.WriteExternalException;
 import org.jdom.Element;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class TestNGConfiguration extends JavaTestConfigurationBase
 {
-	@NonNls
-	private static final String PATTERNS_EL_NAME = "patterns";
-	@NonNls
-	private static final String PATTERN_EL_NAME = "pattern";
-	@NonNls
-	private static final String TEST_CLASS_ATT_NAME = "testClass";
+	static final String MODULE_WITH_DEPENDENCIES_SCOPE = "MODULE_WITH_DEPENDENCIES";
 
-	//private TestNGResultsContainer resultsContainer;
-	protected TestData data;
-	protected transient Project project;
-	public boolean ALTERNATIVE_JRE_PATH_ENABLED;
-	public String ALTERNATIVE_JRE_PATH;
+	private static final String LEGACY_PATTERNS = "patterns";
+	private static final String LEGACY_PATTERN = "pattern";
+	private static final String LEGACY_TEST_CLASS = "testClass";
+	private static final String LEGACY_SEARCH_SCOPE = "TEST_SEARCH_SCOPE";
+
+	@Nullable
+	private String myChangeList;
 
 	private final RefactoringListeners.Accessor<PsiJavaPackage> myPackage = new RefactoringListeners.Accessor<PsiJavaPackage>()
 	{
+		@Override
 		public void setName(final String qualifiedName)
 		{
 			final boolean generatedName = isGeneratedName();
-			data.PACKAGE_NAME = qualifiedName;
+			getOptions().setPackageName(qualifiedName);
 			if(generatedName)
 			{
 				setGeneratedName();
@@ -85,12 +81,14 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		}
 
 		@Nullable
+		@Override
 		public PsiJavaPackage getPsiElement()
 		{
-			final String qualifiedName = data.getPackageName();
-			return qualifiedName != null ? JavaPsiFacade.getInstance(getProject()).findPackage(qualifiedName) : null;
+			final String qualifiedName = getOptions().getPackageName();
+			return JavaPsiFacade.getInstance(getProject()).findPackage(qualifiedName);
 		}
 
+		@Override
 		public void setPsiElement(final PsiJavaPackage psiPackage)
 		{
 			setName(psiPackage.getQualifiedName());
@@ -99,10 +97,11 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 
 	private final RefactoringListeners.Accessor<PsiClass> myClass = new RefactoringListeners.Accessor<PsiClass>()
 	{
+		@Override
 		public void setName(final String qualifiedName)
 		{
 			final boolean generatedName = isGeneratedName();
-			data.MAIN_CLASS_NAME = qualifiedName;
+			getOptions().setMainClassName(qualifiedName);
 			if(generatedName)
 			{
 				setGeneratedName();
@@ -110,12 +109,14 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		}
 
 		@Nullable
+		@Override
 		public PsiClass getPsiElement()
 		{
-			final String qualifiedName = data.getMainClassName();
-			return qualifiedName != null ? JavaPsiFacade.getInstance(getProject()).findClass(qualifiedName, GlobalSearchScope.allScope(project)) : null;
+			final String qualifiedName = getOptions().getMainClassName();
+			return JavaPsiFacade.getInstance(getProject()).findClass(qualifiedName, GlobalSearchScope.allScope(getProject()));
 		}
 
+		@Override
 		public void setPsiElement(final PsiClass psiClass)
 		{
 			setName(psiClass.getQualifiedName());
@@ -124,14 +125,137 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 
 	public TestNGConfiguration(String s, Project project, ConfigurationFactory factory)
 	{
-		this(s, project, new TestData(), factory);
+		super(s, new JavaRunConfigurationModule(project, false), factory);
 	}
 
-	protected TestNGConfiguration(String s, Project project, TestData data, ConfigurationFactory factory)
+	@Override
+	protected Class<TestNGConfigurationOptions> getOptionsClass()
 	{
-		super(s, new JavaRunConfigurationModule(project, false), factory);
-		this.data = data;
-		this.project = project;
+		return TestNGConfigurationOptions.class;
+	}
+
+	@Override
+	public TestNGConfigurationOptions getOptions()
+	{
+		return (TestNGConfigurationOptions) super.getOptions();
+	}
+
+	@Override
+	protected void convertLegacyState(LegacyRunConfigurationConverter converter)
+	{
+		super.convertLegacyState(converter);
+
+		TestNGConfigurationLegacyState old = converter.readXml(TestNGConfigurationLegacyState.class);
+		Element element = converter.getElement();
+
+		TestNGConfigurationOptions options = new TestNGConfigurationOptions();
+		options.setTestObject(old.TEST_OBJECT);
+		options.setSuiteName(old.SUITE_NAME);
+		options.setPackageName(old.PACKAGE_NAME);
+		options.setMainClassName(old.MAIN_CLASS_NAME);
+		options.setMethodName(old.METHOD_NAME);
+		options.setGroupName(old.GROUP_NAME);
+		options.setOutputDirectory(old.OUTPUT_DIRECTORY);
+		options.setPropertiesFile(old.PROPERTIES_FILE);
+		options.setUseDefaultReporters(old.USE_DEFAULT_REPORTERS);
+		options.setSearchScope(readLegacySearchScope(element));
+
+		Map<String, String> properties = new LinkedHashMap<>();
+		Element propertiesElement = element.getChild("properties");
+		if(propertiesElement != null)
+		{
+			for(Element property : propertiesElement.getChildren("property"))
+			{
+				String name = property.getAttributeValue("name");
+				if(name != null)
+				{
+					properties.put(name, StringUtil.notNullize(property.getAttributeValue("value")));
+				}
+			}
+		}
+		options.setProperties(properties);
+
+		List<String> listeners = new ArrayList<>();
+		Element listenersElement = element.getChild("listeners");
+		if(listenersElement != null)
+		{
+			for(Element listener : listenersElement.getChildren("listener"))
+			{
+				String className = listener.getAttributeValue("class");
+				if(className != null)
+				{
+					listeners.add(className);
+				}
+			}
+		}
+		options.setListeners(listeners);
+
+		Set<String> patterns = new LinkedHashSet<>();
+		Element patternsElement = element.getChild(LEGACY_PATTERNS);
+		if(patternsElement != null)
+		{
+			for(Element pattern : patternsElement.getChildren(LEGACY_PATTERN))
+			{
+				String testClass = pattern.getAttributeValue(LEGACY_TEST_CLASS);
+				if(testClass != null)
+				{
+					patterns.add(testClass);
+				}
+			}
+		}
+		options.setPatterns(new ArrayList<>(patterns));
+		converter.setOptions(options);
+
+		converter.addFragment(new ProgramParametersFragmentState(old.PARAMETERS));
+		converter.addFragment(new WorkingDirectoryFragmentState(old.WORKING_DIRECTORY));
+		converter.addFragment(new EnvironmentFragmentState(converter.readEnvs(), old.PASS_PARENT_ENVS));
+		converter.addFragment(new VmParametersFragmentState(old.VM_PARAMETERS));
+		if(old.ALTERNATIVE_JRE_PATH_ENABLED)
+		{
+			converter.addFragment(new JreFragmentState(old.ALTERNATIVE_JRE_PATH));
+		}
+	}
+
+	private static String readLegacySearchScope(Element element)
+	{
+		for(Element option : element.getChildren("option"))
+		{
+			if(!LEGACY_SEARCH_SCOPE.equals(option.getAttributeValue("name")))
+			{
+				continue;
+			}
+
+			Element value = option.getChild("value");
+			if(value == null)
+			{
+				return MODULE_WITH_DEPENDENCIES_SCOPE;
+			}
+
+			String name = value.getAttributeValue("defaultName");
+			if("singleModule".equals(name))
+			{
+				return TestSearchScope.SINGLE_MODULE.toString();
+			}
+			if("moduleWithDependencies".equals(name))
+			{
+				return MODULE_WITH_DEPENDENCIES_SCOPE;
+			}
+			return TestSearchScope.WHOLE_PROJECT.toString();
+		}
+		return MODULE_WITH_DEPENDENCIES_SCOPE;
+	}
+
+	@Override
+	public List<RunConfigurationFragment<?>> createFragments()
+	{
+		return List.of(
+				new TestNGTestTargetFragment(),
+				new TestNGOutputDirectoryFragment(),
+				new TestNGPropertiesFileFragment(),
+				new TestNGUseDefaultReportersFragment(),
+				new TestNGParametersFragment(),
+				new TestNGListenersFragment()
+		);
 	}
 
 	@Nullable
@@ -140,26 +264,21 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		return null;
 	}
 
-	public RunProfileState getState(@NotNull final Executor executor, @NotNull final ExecutionEnvironment env)
+	@Override
+	public RunProfileState getState(final Executor executor, final ExecutionEnvironment env)
 	{
-		final TestData data = getPersistantData();
-		if(data.TEST_OBJECT.equals(TestType.SOURCE.getType()) || data.getChangeList() != null)
+		if(getOptions().getTestObject().equals(TestType.SOURCE.getType()) || getChangeList() != null)
 		{
 			return new TestNGTestDiscoveryRunnableState(env, this);
 		}
 		return new TestNGRunnableState(env, this);
 	}
 
-	public TestData getPersistantData()
-	{
-		return data;
-	}
-
 	@Override
 	public Collection<Module> getValidModules()
 	{
 		//TODO add handling for package
-		return JavaRunConfigurationModule.getModulesForClass(getProject(), data.getMainClassName());
+		return JavaRunConfigurationModule.getModulesForClass(getProject(), getOptions().getMainClassName());
 	}
 
 	@Override
@@ -176,92 +295,50 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		return testObject != null ? testObject.getActionName() : null;
 	}
 
-	public void setVMParameters(@Nullable String value)
+	@Override
+	public String getRunClass()
 	{
-		data.setVMParameters(value);
+		String testObject = getOptions().getTestObject();
+		return !testObject.equals(TestType.CLASS.getType()) && !testObject.equals(TestType.METHOD.getType()) ? null : getOptions().getMainClassName();
 	}
 
-	public String getVMParameters()
+	@Override
+	public String getPackage()
 	{
-		return data.getVMParameters();
+		return !getOptions().getTestObject().equals(TestType.PACKAGE.getType()) ? null : getOptions().getPackageName();
 	}
 
-	public void setProgramParameters(String value)
+	public Set<String> getPatterns()
 	{
-		data.setProgramParameters(value);
+		return new LinkedHashSet<>(getOptions().getPatterns());
 	}
 
-	public String getProgramParameters()
+	public void setPatterns(Collection<String> patterns)
 	{
-		return data.getProgramParameters();
-	}
-
-	public void setWorkingDirectory(String value)
-	{
-		data.setWorkingDirectory(value);
-	}
-
-	public String getWorkingDirectory()
-	{
-		return data.getWorkingDirectory();
-	}
-
-	public void setEnvs(@NotNull Map<String, String> envs)
-	{
-		data.setEnvs(envs);
-	}
-
-	@NotNull
-	public Map<String, String> getEnvs()
-	{
-		return data.getEnvs();
-	}
-
-	public void setPassParentEnvs(boolean passParentEnvs)
-	{
-		data.PASS_PARENT_ENVS = passParentEnvs;
-	}
-
-	public boolean isPassParentEnvs()
-	{
-		return data.PASS_PARENT_ENVS;
-	}
-
-	public boolean isAlternativeJrePathEnabled()
-	{
-		return ALTERNATIVE_JRE_PATH_ENABLED;
-	}
-
-	public void setAlternativeJrePathEnabled(boolean enabled)
-	{
-		this.ALTERNATIVE_JRE_PATH_ENABLED = enabled;
+		getOptions().setPatterns(new ArrayList<>(new LinkedHashSet<>(patterns)));
 	}
 
 	@Nullable
-	public String getAlternativeJrePath()
+	public String getChangeList()
 	{
-		return ALTERNATIVE_JRE_PATH;
+		return myChangeList;
 	}
 
-	public void setAlternativeJrePath(String path)
+	public void setChangeList(@Nullable String changeList)
 	{
-		this.ALTERNATIVE_JRE_PATH = path;
+		myChangeList = changeList;
 	}
 
-	public String getRunClass()
+	public void setTestSearchScope(TestSearchScope scope)
 	{
-		return !data.TEST_OBJECT.equals(TestType.CLASS.getType()) && !data.TEST_OBJECT.equals(TestType.METHOD.getType()) ? null : data.getMainClassName();
+		getOptions().setSearchScope(scope.toString());
 	}
 
-	public String getPackage()
-	{
-		return !data.TEST_OBJECT.equals(TestType.PACKAGE.getType()) ? null : data.getPackageName();
-	}
-
+	@Override
 	public void beClassConfiguration(PsiClass psiclass)
 	{
-		setModule(data.setMainClass(psiclass));
-		data.TEST_OBJECT = TestType.CLASS.getType();
+		setModule(setMainClass(psiclass));
+		getOptions().setTestObject(TestType.CLASS.getType());
 		setGeneratedName();
 	}
 
@@ -280,46 +357,55 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 	@Override
 	public TestSearchScope getTestSearchScope()
 	{
-		return getPersistantData().getScope();
+		String name = getOptions().getSearchScope();
+		if(TestSearchScope.WHOLE_PROJECT.toString().equals(name))
+		{
+			return TestSearchScope.WHOLE_PROJECT;
+		}
+		if(TestSearchScope.SINGLE_MODULE.toString().equals(name))
+		{
+			return TestSearchScope.SINGLE_MODULE;
+		}
+		return TestSearchScope.MODULE_WITH_DEPENDENCIES;
 	}
 
 	public void setPackageConfiguration(Module module, PsiPackage pkg)
 	{
-		data.setPackage((PsiJavaPackage) pkg);
+		getOptions().setPackageName(pkg.getQualifiedName());
 		setModule(module);
-		data.TEST_OBJECT = TestType.PACKAGE.getType();
+		getOptions().setTestObject(TestType.PACKAGE.getType());
 		setGeneratedName();
 	}
 
+	@Override
 	public void beMethodConfiguration(Location<PsiMethod> location)
 	{
-		setModule(data.setTestMethod(location));
+		setModule(setTestMethod(location));
 		setGeneratedName();
 	}
 
 	@Deprecated
 	public void setClassConfiguration(PsiClass psiclass)
 	{
-		setModule(data.setMainClass(psiclass));
-		data.TEST_OBJECT = TestType.CLASS.getType();
-		setGeneratedName();
+		beClassConfiguration(psiclass);
 	}
 
 	@Deprecated
 	public void setMethodConfiguration(Location<PsiMethod> location)
 	{
-		setModule(data.setTestMethod(location));
-		setGeneratedName();
+		beMethodConfiguration(location);
 	}
 
+	@Override
 	public void bePatternConfiguration(List<PsiClass> classes, PsiMethod method)
 	{
-		data.TEST_OBJECT = TestType.PATTERN.getType();
+		TestNGConfigurationOptions options = getOptions();
+		options.setTestObject(TestType.PATTERN.getType());
 		final String suffix;
 		if(method != null)
 		{
-			data.METHOD_NAME = method.getName();
-			suffix = "," + data.METHOD_NAME;
+			options.setMethodName(method.getName());
+			suffix = "," + options.getMethodName();
 		}
 		else
 		{
@@ -330,11 +416,11 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		{
 			patterns.add(JavaExecutionUtil.getRuntimeQualifiedName(pattern) + suffix);
 		}
-		data.setPatterns(patterns);
+		setPatterns(patterns);
 		final Module module = RunConfigurationProducer.getInstance(AbstractTestNGPatternConfigurationProducer.class).findModule(this, getConfigurationModule().getModule(), patterns);
 		if(module == null)
 		{
-			data.setScope(TestSearchScope.WHOLE_PROJECT);
+			setTestSearchScope(TestSearchScope.WHOLE_PROJECT);
 			setModule(null);
 		}
 		else
@@ -344,14 +430,23 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		setGeneratedName();
 	}
 
-	@NotNull
-	public SettingsEditor<? extends RunConfiguration> getConfigurationEditor()
+	@Nullable
+	private Module setMainClass(PsiClass psiClass)
 	{
-		SettingsEditorGroup<TestNGConfiguration> group = new SettingsEditorGroup<>();
-		group.addEditor(ExecutionLocalize.runConfigurationConfigurationTabTitle(), new TestNGConfigurationEditor<>(getProject()));
-		JavaRunConfigurationExtensionManager.getInstance().appendEditors(this, group);
-		group.addEditor(ExecutionLocalize.logsTabTitle(), new LogConfigurationPanel<>());
-		return group;
+		TestNGConfigurationOptions options = getOptions();
+		options.setMainClassName(JavaExecutionUtil.getRuntimeQualifiedName(psiClass));
+		PsiJavaPackage psiPackage = JUnitUtil.getContainingPackage(psiClass);
+		options.setPackageName(psiPackage == null ? "" : psiPackage.getQualifiedName());
+		return JavaExecutionUtil.findModule(psiClass);
+	}
+
+	@Nullable
+	private Module setTestMethod(Location<PsiMethod> location)
+	{
+		final PsiMethod method = location.getPsiElement();
+		getOptions().setMethodName(method.getName());
+		getOptions().setTestObject(TestType.METHOD.getType());
+		return setMainClass(location instanceof MethodLocation methodLocation ? methodLocation.getContainingClass() : method.getContainingClass());
 	}
 
 	@Override
@@ -365,107 +460,12 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		//TODO add various checks here
 	}
 
-	@Override
-	public void readExternal(@NotNull Element element)
-	{
-		super.readExternal(element);
-		JavaRunConfigurationExtensionManager.getInstance().readExternal(this, element);
-		DefaultJDOMExternalizer.readExternal(this, element);
-		DefaultJDOMExternalizer.readExternal(getPersistantData(), element);
-		EnvironmentVariablesComponent.readExternal(element, getPersistantData().getEnvs());
-
-		Map<String, String> properties = getPersistantData().TEST_PROPERTIES;
-		properties.clear();
-		Element propertiesElement = element.getChild("properties");
-		if(propertiesElement != null)
-		{
-			List<Element> children = propertiesElement.getChildren("property");
-			for(Element property : children)
-			{
-				properties.put(property.getAttributeValue("name"), property.getAttributeValue("value"));
-			}
-		}
-
-		List<String> listeners = getPersistantData().TEST_LISTENERS;
-		listeners.clear();
-		Element listenersElement = element.getChild("listeners");
-		if(listenersElement != null)
-		{
-			List<Element> children = listenersElement.getChildren("listener");
-			for(Element listenerClassName : children)
-			{
-				listeners.add(listenerClassName.getAttributeValue("class"));
-			}
-		}
-		final Element patternsElement = element.getChild(PATTERNS_EL_NAME);
-		if(patternsElement != null)
-		{
-			final LinkedHashSet<String> tests = new LinkedHashSet<>();
-			for(Element patternElement : patternsElement.getChildren(PATTERN_EL_NAME))
-			{
-				tests.add(patternElement.getAttributeValue(TEST_CLASS_ATT_NAME));
-			}
-			getPersistantData().setPatterns(tests);
-		}
-	}
-
-	@Override
-	public void writeExternal(@NotNull Element element) throws WriteExternalException
-	{
-		super.writeExternal(element);
-		JavaRunConfigurationExtensionManager.getInstance().writeExternal(this, element);
-		DefaultJDOMExternalizer.writeExternal(this, element);
-		DefaultJDOMExternalizer.writeExternal(getPersistantData(), element);
-		EnvironmentVariablesComponent.writeExternal(element, getPersistantData().getEnvs());
-
-		Element propertiesElement = element.getChild("properties");
-		if(propertiesElement == null)
-		{
-			propertiesElement = new Element("properties");
-			element.addContent(propertiesElement);
-		}
-
-		Map<String, String> properties = getPersistantData().TEST_PROPERTIES;
-		for(Map.Entry<String, String> entry : properties.entrySet())
-		{
-			Element property = new Element("property");
-			property.setAttribute("name", entry.getKey());
-			property.setAttribute("value", entry.getValue());
-			propertiesElement.addContent(property);
-		}
-
-		Element listenersElement = element.getChild("listeners");
-		if(listenersElement == null)
-		{
-			listenersElement = new Element("listeners");
-			element.addContent(listenersElement);
-		}
-
-		List<String> listeners = getPersistantData().TEST_LISTENERS;
-		for(String listener : listeners)
-		{
-			Element listenerElement = new Element("listener");
-			listenerElement.setAttribute("class", listener);
-			listenersElement.addContent(listenerElement);
-		}
-		final Set<String> patterns = getPersistantData().getPatterns();
-		if(!patterns.isEmpty())
-		{
-			final Element patternsElement = new Element(PATTERNS_EL_NAME);
-			for(String o : patterns)
-			{
-				final Element patternElement = new Element(PATTERN_EL_NAME);
-				patternElement.setAttribute(TEST_CLASS_ATT_NAME, o);
-				patternsElement.addContent(patternElement);
-			}
-			element.addContent(patternsElement);
-		}
-	}
-
 	@Nullable
+	@Override
 	public RefactoringElementListener getRefactoringElementListener(final PsiElement element)
 	{
-		if(data.TEST_OBJECT.equals(TestType.PACKAGE.getType()))
+		String testObject = getOptions().getTestObject();
+		if(testObject.equals(TestType.PACKAGE.getType()))
 		{
 			if(!(element instanceof PsiPackage))
 			{
@@ -474,7 +474,7 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 			final RefactoringElementListener listener = RefactoringListeners.getListener((PsiJavaPackage) element, myPackage);
 			return RunConfigurationExtension.wrapRefactoringElementListener(element, this, listener);
 		}
-		else if(data.TEST_OBJECT.equals(TestType.CLASS.getType()))
+		else if(testObject.equals(TestType.CLASS.getType()))
 		{
 			if(!(element instanceof PsiClass) && !(element instanceof PsiPackage))
 			{
@@ -483,7 +483,7 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 			final RefactoringElementListener listener = RefactoringListeners.getClassOrPackageListener(element, myClass);
 			return RunConfigurationExtension.wrapRefactoringElementListener(element, this, listener);
 		}
-		else if(data.TEST_OBJECT.equals(TestType.METHOD.getType()))
+		else if(testObject.equals(TestType.METHOD.getType()))
 		{
 			if(!(element instanceof PsiMethod))
 			{
@@ -491,7 +491,7 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 				return RunConfigurationExtension.wrapRefactoringElementListener(element, this, listener);
 			}
 			final PsiMethod method = (PsiMethod) element;
-			if(!method.getName().equals(data.getMethodName()))
+			if(!method.getName().equals(getOptions().getMethodName()))
 			{
 				return null;
 			}
@@ -501,20 +501,21 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 			}
 			class Listener extends RefactoringElementAdapter implements UndoRefactoringElementListener
 			{
-				public void elementRenamedOrMoved(@NotNull final PsiElement newElement)
+				@Override
+				public void elementRenamedOrMoved(final PsiElement newElement)
 				{
-					data.setTestMethod(PsiLocation.fromPsiElement((PsiMethod) newElement));
+					setTestMethod(PsiLocation.fromPsiElement((PsiMethod) newElement));
 				}
 
 				@Override
-				public void undoElementMovedOrRenamed(@NotNull PsiElement newElement, @NotNull String oldQualifiedName)
+				public void undoElementMovedOrRenamed(PsiElement newElement, String oldQualifiedName)
 				{
 					final int methodIdx = oldQualifiedName.indexOf("#") + 1;
 					if(methodIdx <= 0 || methodIdx >= oldQualifiedName.length())
 					{
 						return;
 					}
-					data.METHOD_NAME = oldQualifiedName.substring(methodIdx);
+					getOptions().setMethodName(oldQualifiedName.substring(methodIdx));
 				}
 			}
 			return RunConfigurationExtension.wrapRefactoringElementListener(element, this, new Listener());
@@ -534,7 +535,6 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 		return new TestNGConsoleProperties(this, executor);
 	}
 
-	@NotNull
 	@Override
 	public String getFrameworkPrefix()
 	{
@@ -544,18 +544,18 @@ public class TestNGConfiguration extends JavaTestConfigurationBase
 	@Nullable
 	public Set<String> calculateGroupNames()
 	{
-		if(!TestType.GROUP.getType().equals(data.TEST_OBJECT))
+		if(!TestType.GROUP.getType().equals(getOptions().getTestObject()))
 		{
 			return null;
 		}
 
-		Set<String> groups = StringUtil.split(data.getGroupName(), ",").stream().map(String::trim).filter(StringUtil::isNotEmpty).collect(Collectors.toSet());
+		Set<String> groups = StringUtil.split(getOptions().getGroupName(), ",").stream().map(String::trim).filter(StringUtil::isNotEmpty).collect(Collectors.toSet());
 		return groups.isEmpty() ? null : groups;
 	}
 
 	public void beFromSourcePosition(PsiLocation<PsiMethod> position)
 	{
 		beMethodConfiguration(position);
-		getPersistantData().TEST_OBJECT = TestType.SOURCE.getType();
+		getOptions().setTestObject(TestType.SOURCE.getType());
 	}
 }

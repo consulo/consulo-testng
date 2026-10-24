@@ -18,6 +18,7 @@ package com.theoryinpractice.testng.model;
 import com.intellij.java.language.psi.*;
 import com.intellij.java.language.psi.search.PackageScope;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationOptions;
 import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.application.ReadAction;
 import consulo.execution.CantRunException;
@@ -41,13 +42,13 @@ public class TestNGTestPackage extends TestNGTestObject {
 
     @Override
     public void fillTestObjects(Map<PsiClass, Map<PsiMethod, List<String>>> classes) throws CantRunException {
-        String packageName = myConfig.getPersistantData().getPackageName();
+        String packageName = myConfig.getOptions().getPackageName();
         PsiPackage psiPackage = ReadAction.compute(() -> JavaPsiFacade.getInstance(myConfig.getProject()).findPackage(packageName));
         if (psiPackage == null) {
             throw CantRunException.packageNotFound(packageName);
         }
         else {
-            TestSearchScope scope = myConfig.getPersistantData().getScope();
+            TestSearchScope scope = myConfig.getTestSearchScope();
             //TODO we should narrow this down by module really, if that's what's specified
             SourceScope sourceScope = scope.getSourceScope(myConfig);
             TestClassFilter projectFilter = new TestClassFilter(sourceScope != null ? sourceScope.getGlobalSearchScope() : GlobalSearchScope.projectScope(
@@ -63,7 +64,7 @@ public class TestNGTestPackage extends TestNGTestObject {
 
     @Override
     public String getGeneratedName() {
-        String packageName = myConfig.getPersistantData().getPackageName();
+        String packageName = myConfig.getOptions().getPackageName();
         return packageName.length() == 0 ? "<default>" : packageName;
     }
 
@@ -73,8 +74,8 @@ public class TestNGTestPackage extends TestNGTestObject {
         if (!myConfig.isGeneratedName()) {
             return '\"' + s + '\"';
         }
-        if (myConfig.getPersistantData().getPackageName().trim().length() > 0) {
-            return "Tests in \"" + myConfig.getPersistantData().getPackageName() + '\"';
+        if (myConfig.getOptions().getPackageName().trim().length() > 0) {
+            return "Tests in \"" + myConfig.getOptions().getPackageName() + '\"';
         }
         else {
             return "All Tests";
@@ -83,7 +84,7 @@ public class TestNGTestPackage extends TestNGTestObject {
 
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
-        TestData data = myConfig.getPersistantData();
+        TestNGConfigurationOptions data = myConfig.getOptions();
         PsiPackage psiPackage = JavaPsiFacade.getInstance(myConfig.getProject()).findPackage(data.getPackageName());
         if (psiPackage == null) {
             throw new RuntimeConfigurationException(LocalizeValue.localizeTODO("Package '" + data.getPackageName() + "' not found"));
@@ -92,7 +93,7 @@ public class TestNGTestPackage extends TestNGTestObject {
 
     @Override
     public boolean isConfiguredByElement(PsiElement element) {
-        String packageName = myConfig.getPersistantData().getPackageName();
+        String packageName = myConfig.getOptions().getPackageName();
         if (element instanceof PsiPackage psiPackage) {
             return Comparing.strEqual(packageName, psiPackage.getQualifiedName());
         }

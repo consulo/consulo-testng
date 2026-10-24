@@ -20,7 +20,6 @@ import com.beust.jcommander.JCommander;
 import com.intellij.java.execution.impl.JavaTestFrameworkRunnableState;
 import com.intellij.java.language.psi.PsiClass;
 import com.intellij.java.language.psi.PsiMethod;
-import com.theoryinpractice.testng.model.TestData;
 import consulo.container.plugin.PluginManager;
 import consulo.execution.executor.Executor;
 import consulo.execution.runner.ExecutionEnvironment;
@@ -94,7 +93,7 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 	@Override
 	protected boolean configureByModule(Module module)
 	{
-		return module != null && getConfiguration().getPersistantData().getScope() != TestSearchScope.WHOLE_PROJECT;
+		return module != null && getConfiguration().getTestSearchScope() != TestSearchScope.WHOLE_PROJECT;
 	}
 
 	@Override
@@ -121,19 +120,19 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 			throw new ExecutionException("Unable to bind to port " + port, e);
 		}
 
-		final TestData data = getConfiguration().getPersistantData();
+		final TestNGConfigurationOptions data = getConfiguration().getOptions();
 
 		if(data.getOutputDirectory() != null && !data.getOutputDirectory().isEmpty())
 		{
 			javaParameters.getProgramParametersList().add(CommandLineArgs.OUTPUT_DIRECTORY, data.getOutputDirectory());
 		}
 
-		javaParameters.getProgramParametersList().add(CommandLineArgs.USE_DEFAULT_LISTENERS, String.valueOf(data.USE_DEFAULT_REPORTERS));
+		javaParameters.getProgramParametersList().add(CommandLineArgs.USE_DEFAULT_LISTENERS, String.valueOf(data.isUseDefaultReporters()));
 
 		@NonNls final StringBuilder buf = new StringBuilder();
-		if(data.TEST_LISTENERS != null && !data.TEST_LISTENERS.isEmpty())
+		if(!data.getListeners().isEmpty())
 		{
-			buf.append(StringUtil.join(data.TEST_LISTENERS, ";"));
+			buf.append(StringUtil.join(data.getListeners(), ";"));
 		}
 //		collectListeners(javaParameters, buf, IDEATestNGListener.EP_NAME.getName(), ";");
 //		if(buf.length() > 0)
@@ -232,7 +231,7 @@ public class TestNGRunnableState extends JavaTestFrameworkRunnableState<TestNGCo
 	@Override
 	protected TestSearchScope getScope()
 	{
-		return getConfiguration().getPersistantData().getScope();
+		return getConfiguration().getTestSearchScope();
 	}
 
 	protected void passForkMode(String forkMode, File tempFile, OwnJavaParameters parameters) throws ExecutionException

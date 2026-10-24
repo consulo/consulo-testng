@@ -18,6 +18,7 @@ package com.theoryinpractice.testng.model;
 import com.intellij.java.language.psi.PsiClass;
 import com.intellij.java.language.psi.PsiMethod;
 import com.theoryinpractice.testng.configuration.TestNGConfiguration;
+import com.theoryinpractice.testng.configuration.TestNGConfigurationOptions;
 import consulo.execution.CantRunException;
 import consulo.execution.RuntimeConfigurationException;
 import consulo.language.psi.PsiElement;
@@ -48,19 +49,19 @@ public class TestNGTestSuite extends TestNGTestObject
 	@Override
 	public String getGeneratedName()
 	{
-		return myConfig.getPersistantData().getSuiteName();
+		return myConfig.getOptions().getSuiteName();
 	}
 
 	@Override
 	public String getActionName()
 	{
-		return myConfig.getPersistantData().getSuiteName();
+		return myConfig.getOptions().getSuiteName();
 	}
 
 	@Override
 	public void checkConfiguration() throws RuntimeConfigurationException
 	{
-		final TestData data = myConfig.getPersistantData();
+		final TestNGConfigurationOptions data = myConfig.getOptions();
 		try
 		{
 			final Parser parser = new Parser(data.getSuiteName());
@@ -83,7 +84,7 @@ public class TestNGTestSuite extends TestNGTestObject
 		if(containingFile instanceof XmlFile)
 		{
 			final VirtualFile virtualFile = PsiUtilCore.getVirtualFile(containingFile);
-			return virtualFile != null && Comparing.strEqual(myConfig.getPersistantData().getSuiteName(), virtualFile.getPath());
+			return virtualFile != null && Comparing.strEqual(myConfig.getOptions().getSuiteName(), virtualFile.getPath());
 		}
 		return false;
 	}
