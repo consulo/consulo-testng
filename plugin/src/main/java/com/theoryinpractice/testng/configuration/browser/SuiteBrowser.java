@@ -15,21 +15,22 @@
  */
 package com.theoryinpractice.testng.configuration.browser;
 
-import consulo.execution.ui.awt.BrowseModuleValueActionListener;
 import consulo.fileChooser.FileChooserDescriptor;
-import consulo.fileChooser.IdeaFileChooser;
+import consulo.fileChooser.FileChooserFactory;
 import consulo.project.Project;
 import consulo.testng.localize.TestNGLocalize;
+import consulo.ui.annotation.RequiredUIAccess;
 import consulo.virtualFileSystem.VirtualFile;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Hani Suleiman
  */
-public class SuiteBrowser extends BrowseModuleValueActionListener
+public class SuiteBrowser
 {
-	public SuiteBrowser(Project project)
+	private SuiteBrowser()
 	{
-		super(project);
 	}
 
 	public static FileChooserDescriptor createSuiteDescriptor()
@@ -41,10 +42,12 @@ public class SuiteBrowser extends BrowseModuleValueActionListener
 				.withDescription(TestNGLocalize.testngSuiteBrowserSelectXmlSuiteFile());
 	}
 
-	@Override
-	public String showDialog()
+	/**
+	 * Chooses a suite file - completes on the UI thread, cancelled when nothing is chosen.
+	 */
+	@RequiredUIAccess
+	public static CompletableFuture<VirtualFile> chooseSuite(Project project)
 	{
-		VirtualFile file = IdeaFileChooser.chooseFile(createSuiteDescriptor(), getProject(), null);
-		return file != null ? file.getPath() : null;
+		return FileChooserFactory.getInstance().newBuilder(createSuiteDescriptor()).project(project).showSingleAsVirtualFile();
 	}
 }

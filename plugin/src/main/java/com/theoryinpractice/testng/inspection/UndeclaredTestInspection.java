@@ -29,7 +29,7 @@ import com.theoryinpractice.testng.util.TestNGUtil;
 import consulo.annotation.component.ExtensionImpl;
 import consulo.application.Result;
 import consulo.fileChooser.FileChooserDescriptorFactory;
-import consulo.fileChooser.IdeaFileChooser;
+import consulo.fileChooser.FileChooserFactory;
 import consulo.language.editor.WriteCommandAction;
 import consulo.language.editor.inspection.LocalQuickFix;
 import consulo.language.editor.inspection.ProblemDescriptor;
@@ -46,7 +46,6 @@ import consulo.language.util.IncorrectOperationException;
 import consulo.localize.LocalizeValue;
 import consulo.logging.Logger;
 import consulo.project.Project;
-import consulo.virtualFileSystem.LocalFileSystem;
 import consulo.virtualFileSystem.VirtualFile;
 import consulo.xml.language.XmlFileType;
 import consulo.xml.language.psi.XmlAttribute;
@@ -184,21 +183,20 @@ public class UndeclaredTestInspection extends BaseJavaLocalInspectionTool {
 
                 @Override
                 public void run() {
-                    final String testngXmlPath = new SuiteBrowser(project).showDialog();
-                    if (testngXmlPath == null) {
-                        return;
-                    }
-                    final VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(testngXmlPath);
-                    LOG.assertTrue(virtualFile != null);
-                    final PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
-                    LOG.assertTrue(psiFile instanceof XmlFile);
-                    final XmlFile testngXML = (XmlFile) psiFile;
-                    new WriteCommandAction(project, getName().get(), testngXML) {
-                        @Override
-                        protected void run(final Result result) throws Throwable {
-                            patchTestngXml(testngXML, psiClass);
+                    SuiteBrowser.chooseSuite(project).whenComplete((virtualFile, error) -> {
+                        if (virtualFile == null) {
+                            return;
                         }
-                    }.execute();
+                        final PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+                        LOG.assertTrue(psiFile instanceof XmlFile);
+                        final XmlFile testngXML = (XmlFile) psiFile;
+                        new WriteCommandAction(project, getName().get(), testngXML) {
+                            @Override
+                            protected void run(final Result result) throws Throwable {
+                                patchTestngXml(testngXML, psiClass);
+                            }
+                        }.execute();
+                    });
                 }
             });
         }
@@ -242,32 +240,36 @@ public class UndeclaredTestInspection extends BaseJavaLocalInspectionTool {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    final VirtualFile file =
-                        IdeaFileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), project, null);
-                    if (file != null) {
-                        final PsiManager psiManager = PsiManager.getInstance(project);
-                        final PsiDirectory directory = psiManager.findDirectory(file);
-                        LOG.assertTrue(directory != null);
-                        new WriteCommandAction(project, getName().get(), null) {
-                            @Override
-                            protected void run(final Result result) throws Throwable {
-                                XmlFile testngXml =
-                                    (XmlFile) PsiFileFactory.getInstance(psiManager.getProject()).createFileFromText(
-                                        "testng.xml",
-                                        XmlFileType.INSTANCE,
-                                        "<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\">\n<suite></suite>"
-                                    );
-                                try {
-                                    testngXml = (XmlFile) directory.add(testngXml);
-                                }
-                                catch (IncorrectOperationException e) {
-                                    //todo suggest new name
-                                    return;
-                                }
-                                patchTestngXml(testngXml, psiClass);
+                    FileChooserFactory.getInstance()
+                        .newBuilder(FileChooserDescriptorFactory.createSingleFolderDescriptor())
+                        .project(project)
+                        .showSingleAsVirtualFile()
+                        .whenComplete((file, error) -> {
+                            if (file != null) {
+                                final PsiManager psiManager = PsiManager.getInstance(project);
+                                final PsiDirectory directory = psiManager.findDirectory(file);
+                                LOG.assertTrue(directory != null);
+                                new WriteCommandAction(project, getName().get(), null) {
+                                    @Override
+                                    protected void run(final Result result) throws Throwable {
+                                        XmlFile testngXml =
+                                            (XmlFile) PsiFileFactory.getInstance(psiManager.getProject()).createFileFromText(
+                                                "testng.xml",
+                                                XmlFileType.INSTANCE,
+                                                "<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\">\n<suite></suite>"
+                                            );
+                                        try {
+                                            testngXml = (XmlFile) directory.add(testngXml);
+                                        }
+                                        catch (IncorrectOperationException e) {
+                                            //todo suggest new name
+                                            return;
+                                        }
+                                        patchTestngXml(testngXml, psiClass);
+                                    }
+                                }.execute();
                             }
-                        }.execute();
-                    }
+                        });
                 }
             });
         }
